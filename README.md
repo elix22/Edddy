@@ -1,3 +1,3 @@
 ![Edddy](logo.png)
 
-Edddy is a block based 3D map editor for Urho3D
+Edddy is a block based 3D map editor.
