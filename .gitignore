@@ -36,3 +36,10 @@ Makefile*
 # QtCtreator CMake
 CMakeLists.txt.user
 
+# Urho3D
+/Urho3D
+/Data
+/CoreData
+edddy
+
+*.blend*
