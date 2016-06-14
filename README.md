@@ -1,3 +1,3 @@
-![Edddy](logo.png)
+![Edddy](icon.png)
 
 Edddy is a block based 3D map editor.
