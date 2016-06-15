@@ -13,6 +13,8 @@ class Block : public Object
 public:
     Block(Context* context);
 
+    Model* GetModel() const { return model_; }
+    Material* GetMaterial() const { return material_; }
 private:
     String name_;
     Model* model_;

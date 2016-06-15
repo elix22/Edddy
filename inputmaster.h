@@ -30,16 +30,29 @@ class Scene;
 class Sprite;
 }
 
-enum class InputAction { UP, RIGHT, DOWN, LEFT, FORWARD, BACK, CONFIRM, CANCEL, PAUSE, MENU, SCREENSHOT };
+enum InputAction { ACTION_UP, ACTION_RIGHT, ACTION_DOWN, ACTION_LEFT, ACTION_FORWARD, ACTION_BACK,
+                   ACTION_X_AXIS, ACTION_Y_AXIS, ACTION_Z_AXIS, ACTION_H_AXIS, ACTION_V_AXIS, ACTION_D_AXIS,
+                   ACTION_NEXT_BLOCK, ACTION_PREVIOUS_BLOCK, ACTION_NEXT_PALETTE, ACTION_PREVIOUS_PALETTE,
+                   ACTION_ROTATE_CW, ACTION_ROTATE_CCW, ACTION_PICKBLOCK,
+                   ACTION_UNDO, ACTION_REDO, ACTION_CONFIRM, ACTION_CANCEL, ACTION_SAVE, ACTION_QUIT, ALL_ACTIONS};
 
 typedef Vector<InputAction> InputActions;
+
+class EdddyCursor;
+
+#define ACTION_INTERVAL 0.2f
 
 class InputMaster : public Object
 {
     URHO3D_OBJECT(InputMaster, Object);
 public:
     InputMaster(Context* context);
+
+    void SetCursor(EdddyCursor* cursor) { cursor_ = cursor; }
+    EdddyCursor* GetCursor() const { return cursor_; }
+    bool CheckActionable(InputAction action, const InputActions& inputActions, bool reset = false);
 private:
+    EdddyCursor* cursor_;
     HashMap<int, InputAction> keyBindings_;
     HashMap<int, InputAction> buttonBindings_;
 
@@ -48,6 +61,8 @@ private:
     Vector2 leftStickPosition_;
     Vector2 rightStickPosition_;
 
+    HashMap<int, float> actionTime_;
+
     void HandleUpdate(StringHash eventType, VariantMap &eventData);
     void HandleKeyDown(StringHash eventType, VariantMap &eventData);
     void HandleKeyUp(StringHash eventType, VariantMap &eventData);
@@ -55,8 +70,8 @@ private:
     void HandleJoyButtonUp(StringHash eventType, VariantMap &eventData);
     void HandleJoystickAxisMove(StringHash eventType, VariantMap& eventData);
 
-    void HandleActions(const InputActions &actions);
-    Vector3 GetMoveFromActions(Vector<InputAction>* actions);
+    void HandleActions(const InputActions &actions, float timeStep);
+    IntVector3 GetMoveFromActions(const InputActions& actions);
     void CorrectForCameraYaw(Vector3& vec3);
 };
 

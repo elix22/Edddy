@@ -1,8 +1,10 @@
 #include "resourcemaster.h"
+#include "inputmaster.h"
 #include "blockmap.h"
 #include "gridblock.h"
 
 #include "edddycam.h"
+#include "edddycursor.h"
 
 void GridBlock::RegisterObject(Context *context)
 {
@@ -10,25 +12,22 @@ void GridBlock::RegisterObject(Context *context)
 }
 GridBlock::GridBlock(Context* context) : BlockInstance(context)
 {
-
 }
 void GridBlock::OnNodeSet(Node *node)
-{ (void)node;
+{
+
+    BlockInstance::OnNodeSet(node);
 
     gridNode_ = node_->CreateChild("GRID");
 
     centerNode_ = gridNode_->CreateChild("CENTER");
-    StaticModel* centerModel = centerNode_->CreateComponent<StaticModel>();
-    centerModel->SetModel(RM->GetModel("Center"));
-    centerModel->SetMaterial(RM->GetMaterial("VCol"));
+    centerModel_ = centerNode_->CreateComponent<AnimatedModel>();
+    centerModel_->SetModel(RM->GetModel("Center"));
+    centerModel_->SetMaterial(RM->GetMaterial("VCol"));
 
     for (int c{0}; c < 8; ++c) {
 
         Node* cornerNode{ gridNode_->CreateChild("CORNER") };
-//        cornerNode->SetPosition(Vector3(
-//                                    ((c % 2)     ? -0.5f : 0.5f) * BLOCK_WIDTH,
-//                                   (((c / 2) %2) ? -0.5f : 0.5f) * BLOCK_HEIGHT,
-//                                    ((c / 4)     ? -0.5f : 0.5f) * BLOCK_DEPTH));
         cornerNode->SetPosition(Vector3(
                                     0.5f * BLOCK_WIDTH,
                                     0.5f * BLOCK_HEIGHT,
@@ -41,10 +40,15 @@ void GridBlock::OnNodeSet(Node *node)
 
         StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
         cornerModel->SetModel(RM->GetModel("Corner"));
-        cornerModel->SetMaterial(RM->GetMaterial("Glow"));
+        cornerModel->SetMaterial(RM->GetMaterial("CornerGlowInactive"));
 
         cornerNodes_.Push(cornerNode);
     }
+}
+void GridBlock::DelayedStart()
+{
+
+    SubscribeToEvent(GetSubsystem<InputMaster>()->GetCursor(), E_CURSORSTEP, URHO3D_HANDLER(GridBlock, HandleCursorStep));
 }
 
 void GridBlock::Init(IntVector3 coords)
@@ -68,5 +72,22 @@ void GridBlock::SetCoords(IntVector3 coords)
 void GridBlock::Update(float timeStep)
 { (void)timeStep;
 
-    centerNode_->SetScale(1.0f - Clamp(Distance(node_->GetPosition(), MC->camera_->GetNode()->GetPosition()) * 0.1f - 0.5f, 0.0f, 1.0f));
+}
+
+
+void GridBlock::HandleCursorStep(StringHash eventType, VariantMap& evenData)
+{
+
+    float distanceToCursor{ Distance(node_->GetPosition() / BLOCK_SIZE,
+                                     GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetPosition() / BLOCK_SIZE) };
+    float centerScale{1.0f - Clamp(distanceToCursor * 0.25f - 0.5f, 0.0f, 0.666f)};
+    centerNode_->SetScale(centerScale);
+    centerModel_->SetMorphWeight(0, distanceToCursor > 1.0f);
+
+    float cornerScale{1.0f - Clamp(distanceToCursor * 0.1f - 0.1f, 0.0f, 0.666f)};
+    if (distanceToCursor < 0.1f) cornerScale = 0.0f;
+    for (Node* cornerNode : cornerNodes_) {
+        cornerNode->SetScale(cornerScale);
+    }
+
 }

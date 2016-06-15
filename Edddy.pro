@@ -30,7 +30,10 @@ SOURCES += \
     blockmap.cpp \
     blockinstance.cpp \
     freeblock.cpp \
-    block.cpp
+    block.cpp \
+    edddycursor.cpp \
+    Urho3D/Source/Urho3D/Math/intvector3.cpp \
+    editmaster.cpp
 
 HEADERS += \
     luckey.h \
@@ -45,4 +48,7 @@ HEADERS += \
     blockmap.h \
     blockinstance.h \
     freeblock.h \
-    block.h
+    block.h \
+    edddycursor.h \
+    intvector3.h \
+    editmaster.h

@@ -119,8 +119,14 @@ public:
     /// Z coordinate.
     int z_;
 
-    /// Zero vector.
     static const IntVector3 ZERO;
+    static const IntVector3 LEFT;
+    static const IntVector3 RIGHT;
+    static const IntVector3 UP;
+    static const IntVector3 DOWN;
+    static const IntVector3 FORWARD;
+    static const IntVector3 BACK;
+    static const IntVector3 ONE;
 };
 
 /// Multiply IntVector3 with a scalar.

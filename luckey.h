@@ -84,6 +84,8 @@
 #include <Urho3D/DebugNew.h>
 
 #include <initializer_list>
+#include <bitset>
+#include "intvector3.h"
 #include "mastercontrol.h"
 
 #define FILES GetSubsystem<FileSystem>()

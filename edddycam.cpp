@@ -45,7 +45,6 @@ void EdddyCam::OnNodeSet(Node *node)
 
     SetupViewport();
 
-//    SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(EdddyCam, HandleUpdate));
 }
 void EdddyCam::SetupViewport()
 {
@@ -56,10 +55,10 @@ void EdddyCam::SetupViewport()
     effectRenderPath->Append(CACHE->GetResource<XMLFile>("PostProcess/FXAA3.xml"));
     effectRenderPath->SetEnabled("FXAA3", true);
 
-    effectRenderPath->Append(CACHE->GetResource<XMLFile>("PostProcess/BloomHDR.xml"));
-    effectRenderPath->SetShaderParameter("BloomHDRThreshold", 0.42f);
-    effectRenderPath->SetShaderParameter("BloomHDRMix", Vector2(0.9f, 0.23f));
-    effectRenderPath->SetEnabled("BloomHDR", true);
+//    effectRenderPath->Append(CACHE->GetResource<XMLFile>("PostProcess/BloomHDR.xml"));
+//    effectRenderPath->SetShaderParameter("BloomHDRThreshold", 0.42f);
+//    effectRenderPath->SetShaderParameter("BloomHDRMix", Vector2(0.9f, 0.23f));
+//    effectRenderPath->SetEnabled("BloomHDR", true);
 
     viewport->SetRenderPath(effectRenderPath);
     RENDERER->SetViewport(0, viewport);
@@ -69,7 +68,6 @@ void EdddyCam::Update(float timeStep)
 {
 ///Quick and temporary camera input
 
-//    float timeStep{ eventData[Update::P_TIMESTEP].GetFloat() };
     float speed{1.0f + 7.0f * INPUT->GetKeyDown(KEY_SHIFT)};
     node_->Translate( speed * timeStep *
                ((node_->GetDirection() * Vector3(1.0f, 0.0f, 1.0f)).Normalized() * (INPUT->GetKeyDown(KEY_W) - INPUT->GetKeyDown(KEY_S)) +

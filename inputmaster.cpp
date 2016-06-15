@@ -18,20 +18,34 @@
 */
 
 #include "inputmaster.h"
+#include "editmaster.h"
 #include "edddycam.h"
+#include "edddycursor.h"
 
 using namespace LucKey;
 
 InputMaster::InputMaster(Context* context) : Object(context)
 {
-    keyBindings_[KEY_UP]     = buttonBindings_[static_cast<int>(SB_DPAD_UP)]    = InputAction::UP;
-    keyBindings_[KEY_DOWN]   = buttonBindings_[static_cast<int>(SB_DPAD_DOWN)]  = InputAction::DOWN;
-    keyBindings_[KEY_LEFT]   = buttonBindings_[static_cast<int>(SB_DPAD_LEFT)]  = InputAction::LEFT;
-    keyBindings_[KEY_RIGHT]  = buttonBindings_[static_cast<int>(SB_DPAD_RIGHT)] = InputAction::RIGHT;
-    keyBindings_[KEY_RETURN] = buttonBindings_[static_cast<int>(SB_CROSS)]      = InputAction::CONFIRM;
-    keyBindings_[KEY_ESCAPE] = buttonBindings_[static_cast<int>(SB_CIRCLE)]     = InputAction::CANCEL;
-    keyBindings_[KEY_PAUSE]  = buttonBindings_[static_cast<int>(SB_START)]      = InputAction::PAUSE;
-    keyBindings_[KEY_ESCAPE] = InputAction::MENU;
+    for (int a{0}; a < static_cast<int>(InputAction::ALL_ACTIONS); ++a){
+        actionTime_[a] = 0.0f;
+    }
+
+    keyBindings_[KEY_UP]     = buttonBindings_[static_cast<int>(SB_DPAD_UP)]    = ACTION_UP;
+    keyBindings_[KEY_DOWN]   = buttonBindings_[static_cast<int>(SB_DPAD_DOWN)]  = ACTION_DOWN;
+    keyBindings_[KEY_LEFT]   = buttonBindings_[static_cast<int>(SB_DPAD_LEFT)]  = ACTION_LEFT;
+    keyBindings_[KEY_RIGHT]  = buttonBindings_[static_cast<int>(SB_DPAD_RIGHT)] = ACTION_RIGHT;
+    keyBindings_[93]/*]*/    = buttonBindings_[static_cast<int>(SB_DPAD_RIGHT)] = ACTION_FORWARD;
+    keyBindings_[91]/*[*/    = buttonBindings_[static_cast<int>(SB_DPAD_RIGHT)] = ACTION_BACK;
+    keyBindings_[KEY_X]      = ACTION_X_AXIS;
+    keyBindings_[KEY_Y]      = ACTION_Y_AXIS;
+    keyBindings_[KEY_Z]      = ACTION_Z_AXIS;
+    keyBindings_[46]/*.*/    = ACTION_NEXT_BLOCK;
+    keyBindings_[44]/*,*/    = ACTION_PREVIOUS_BLOCK;
+    keyBindings_[KEY_0]      = ACTION_ROTATE_CCW;
+    keyBindings_[KEY_9]      = ACTION_ROTATE_CW;
+    keyBindings_[47]/*/*/    = ACTION_PICKBLOCK;
+    keyBindings_[KEY_RETURN] = buttonBindings_[static_cast<int>(SB_CROSS)]      = ACTION_CONFIRM;
+    keyBindings_[KEY_ESCAPE] = buttonBindings_[static_cast<int>(SB_CIRCLE)]     = ACTION_CANCEL;
 
     SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(InputMaster, HandleKeyDown));
     SubscribeToEvent(E_KEYUP, URHO3D_HANDLER(InputMaster, HandleKeyUp));
@@ -44,8 +58,9 @@ InputMaster::InputMaster(Context* context) : Object(context)
 }
 
 void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
-{ (void)eventType; (void)eventData;
+{ (void)eventType;
 
+    float timeStep{ eventData[Update::P_TIMESTEP].GetFloat() };
     InputActions activeActions{};
 
     //Convert key presses to actions
@@ -67,75 +82,113 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
 //            }
 //    }
 
-    //Handle the registered actions
-    HandleActions(activeActions);
+    HandleActions(activeActions, timeStep);
 }
 
-void InputMaster::HandleActions(const InputActions& actions)
+void InputMaster::HandleActions(const InputActions& actions, float timeStep)
 {
-    //Handle master actions
-    for (InputAction action : actions){
-        switch (action){
-        case InputAction::UP:                 break;
-        case InputAction::DOWN:               break;
-        case InputAction::LEFT:               break;
-        case InputAction::RIGHT:              break;
-        case InputAction::CONFIRM:            break;
-        case InputAction::CANCEL:             break;
-        case InputAction::PAUSE:              break;
-        case InputAction::MENU: MC->Exit();   break;
-        default: break;
-        }
+    IntVector3 step{GetMoveFromActions(actions)};
+    if (step != IntVector3::ZERO){
+        actionTime_[ACTION_CONFIRM] = 0.0f;
+        cursor_->Step(step);
     }
 
+    Vector<int> unusedActions{};
+    for (int a{0}; a < ALL_ACTIONS; ++a){
+        unusedActions.Push(a);
+    }
+    //Handle actions and reset action timers
+    for (InputAction action : actions){
 
-//    //Handle player actions
-//    for (int p : MC->GetPlayers()){
-//        auto playerInputActions = actions.player_[p];
+        if (unusedActions.Contains(action))
+            unusedActions.Remove(action);
 
-//        Controllable* controlled{controlledByPlayer_[p]};
-//        if (controlled){
+        if (actionTime_[action] == 0.0f
+         || actionTime_[action] > ACTION_INTERVAL)
+        {
+            actionTime_[action] = 0.0f;
 
-//            Vector3 stickMove{ Vector3(leftStickPosition_[p-1].x_, 0.0f, leftStickPosition_[p-1].y_) };
-//            CorrectForCameraYaw(stickMove);
-
-//            controlled->SetMove(GetMoveFromActions(playerInputActions) + stickMove);
-
-//            std::bitset<4>restActions{};
-//            restActions[0] = playerInputActions->Contains(PlayerInputAction::RUN);
-//            restActions[1] = playerInputActions->Contains(PlayerInputAction::JUMP);
-//            restActions[2] = playerInputActions->Contains(PlayerInputAction::BUBBLE);
-//            restActions[3] = playerInputActions->Contains(PlayerInputAction::INTERACT);
-
-//            controlled->SetActions(restActions);
-//        }
-//    }
+            switch (action){
+            case ACTION_UP:       case ACTION_DOWN:
+            case ACTION_LEFT:     case ACTION_RIGHT:
+            case ACTION_FORWARD:  case ACTION_BACK:
+                break;
+            case ACTION_X_AXIS:{
+                std::bitset<3> lock{};
+                lock[0] = true;
+                if (INPUT->GetKeyDown(KEY_SHIFT))
+                    lock.flip();
+                cursor_->SetAxisLock(lock);
+            } break;
+            case ACTION_Y_AXIS:{
+                std::bitset<3> lock{};
+                lock[1] = true;
+                if (INPUT->GetKeyDown(KEY_SHIFT))
+                    lock.flip();
+                cursor_->SetAxisLock(lock);
+            } break;
+            case ACTION_Z_AXIS:{
+                std::bitset<3> lock{};
+                lock[2] = true;
+                if (INPUT->GetKeyDown(KEY_SHIFT))
+                    lock.flip();
+                cursor_->SetAxisLock(lock);
+            } break;
+            case ACTION_NEXT_BLOCK:{
+                GetSubsystem<EditMaster>()->NextBlock();
+            } break;
+            case ACTION_PREVIOUS_BLOCK:{
+                GetSubsystem<EditMaster>()->PreviousBlock();
+            } break;
+            case ACTION_ROTATE_CW:{
+                cursor_->Rotate(true);
+            } break;
+            case ACTION_ROTATE_CCW:{
+                cursor_->Rotate(false);
+            } break;
+            case ACTION_PICKBLOCK: {
+                GetSubsystem<EditMaster>()->PickBlock();
+            } break;
+            case ACTION_CONFIRM: {
+                GetSubsystem<EditMaster>()->PutBlock();
+            } break;
+            case ACTION_CANCEL:           break;
+            default: break;
+            }
+        }
+        actionTime_[action] += timeStep;
+    }
+    for (int a : unusedActions){
+        actionTime_[a] = 0.0f;
+    }
 }
 
-Vector3 InputMaster::GetMoveFromActions(Vector<InputAction>* actions)
+IntVector3 InputMaster::GetMoveFromActions(const InputActions& actions)
 {
-    Vector3 move{Vector3::RIGHT *
-                (actions->Contains(InputAction::RIGHT) -
-                 actions->Contains(InputAction::LEFT))
+    IntVector3 move{IntVector3::RIGHT   * (CheckActionable(ACTION_RIGHT, actions) - CheckActionable(ACTION_LEFT, actions))
+                  + IntVector3::UP      * (CheckActionable(ACTION_UP, actions) - CheckActionable(ACTION_DOWN, actions))
+                  + IntVector3::FORWARD * (CheckActionable(ACTION_FORWARD, actions) - CheckActionable(ACTION_BACK, actions))};
 
-                + Vector3::UP *
-                (actions->Contains(InputAction::UP) -
-                 actions->Contains(InputAction::DOWN))
-
-                + Vector3::FORWARD *
-                (actions->Contains(InputAction::FORWARD) -
-                 actions->Contains(InputAction::BACK))
-                };
-
-    CorrectForCameraYaw(move);
+//    CorrectForCameraYaw(move);
 
     return move;
+}
+
+bool InputMaster::CheckActionable(InputAction action, const InputActions& inputActions, bool reset)
+{
+    bool actionable{ inputActions.Contains(action) && (actionTime_[action] > ACTION_INTERVAL || actionTime_[action] == 0.0f) };
+    if (actionable && reset)
+        actionTime_[action] = 0.0f;
+
+    return actionable;
 }
 
 void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
     int key{eventData[KeyDown::P_KEY].GetInt()};
+
+    Log::Write(1, String(key));
 
     if (!pressedKeys_.Contains(key))
         pressedKeys_.Push(key);
@@ -154,6 +207,11 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
         //Log::Write(1, fileName);
         screenshot.SavePNG(fileName);
     } break;
+    case KEY_Q:{
+        if (INPUT->GetKeyDown(KEY_LCTRL) || INPUT->GetKeyDown(KEY_RCTRL))
+            MC->Exit();
+
+    }break;
     default: break;
     }
 }

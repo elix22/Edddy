@@ -10,6 +10,7 @@
 #define BLOCK_WIDTH  3.0f
 #define BLOCK_HEIGHT 1.0f
 #define BLOCK_DEPTH  3.0f
+#define BLOCK_SIZE Vector3(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_DEPTH)
 
 #define MAP_WIDTH  10
 #define MAP_HEIGHT 10
@@ -28,8 +29,8 @@ public:
     static void RegisterObject(Context* context);
     virtual void OnNodeSet(Node* node);
 
-    Block* GetBlock(IntVector3 coords);
-    void SetBlock(IntVector3 coords, Block* block);
+    BlockInstance* GetBlockInstance(IntVector3 coords);
+    bool SetBlock(IntVector3 coords, Block* block);
 private:
     HashMap<int,  Sheet> map_;
 //    Vector< Pair<Vector3, FreeBlock> > freeBlocks_;

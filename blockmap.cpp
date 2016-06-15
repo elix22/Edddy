@@ -1,3 +1,5 @@
+#include "inputmaster.h"
+#include "edddycursor.h"
 #include "gridblock.h"
 #include "blockmap.h"
 
@@ -30,31 +32,35 @@ void BlockMap::OnNodeSet(Node *node)
                 IntVector2 sheetCoords(x, z);
                 sheet[sheetCoords] = gridBlock;
             }
+        map_[y] = sheet;
     }
 }
 
-Block* BlockMap::GetBlock(IntVector3 coords)
+BlockInstance* BlockMap::GetBlockInstance(IntVector3 coords)
 {
-    Block* block{ nullptr };
+    BlockInstance* blockInstance{ nullptr };
     Sheet sheet{};
 
     if (map_.TryGetValue(coords.y_, sheet)){
         GridBlock* gridBlock{ nullptr };
         if (sheet.TryGetValue(IntVector2(coords.x_, coords.z_), gridBlock))
-            block = gridBlock->block_;
+            blockInstance = static_cast<BlockInstance*>(gridBlock);
     }
 
-    return block;
+    return blockInstance;
 }
 
-void BlockMap::SetBlock(IntVector3 coords, Block* block)
+bool BlockMap::SetBlock(IntVector3 coords, Block* block)
 {
+
     Sheet sheet{};
     if (map_.TryGetValue(coords.y_, sheet)){
+
         GridBlock* gridBlock{ nullptr };
         if (sheet.TryGetValue(IntVector2(coords.x_, coords.z_), gridBlock))
-            gridBlock->block_ = block;
+            return gridBlock->SetBlock(block, GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetRotation());
     }
+    return false;
 }
 
 

@@ -10,6 +10,9 @@ FreeBlock::FreeBlock(Context* context) : BlockInstance(context)
 }
 
 
-
+void FreeBlock::OnNodeSet(Node *node)
+{
+    BlockInstance::OnNodeSet(node);
+}
 
 

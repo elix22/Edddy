@@ -2,7 +2,7 @@
 
 ## Cursor control
 
-The 3D cursor can be controlled with the mouse or arrow keys. By default the mouse will raycast to the first block it encounters on th active layer.
+The 3D cursor can be controlled with the mouse or arrow keys. By default the mouse will raycast to the first block it encounters.
 The arrow keys will select along the XZ-plane by default, with **\[** and **\]** moving the 3D cursor along the remaining axis.
 
 The **X**, **Y** and **Z** keys will lock the movement of the 3D cursor to that axis.
@@ -25,11 +25,11 @@ Tab switches boolean selection modes:
 - Standard (new)
 - Add (old || new)
 - Subtract (old && !new)
-- Multiply (old && new)
+- Intersect (old && new)
 
 Clicking with empty selection in Substract or Multiply mode will switch back to Standard select mode.
 
-**A** toggles selected for all locked axes. If no axes are locked or 
+**A** toggles selected for all blocks along the degrees of freedom of the cursor.
 
 ## Camera control
 
@@ -75,14 +75,15 @@ Here you can change the size of the map, the grid and the block offset.
 + **O**: Type select
 + **Backspace**: Select previous tool
 + **#** : Toggles between grid and free placement
++ **C** : Toggle between step and camera selection
 
 + **Ctrl+R**: Replace or swap block types
 
 -----------------------
 
 + **Delete**: Remove selected blocks
-+ **Shift+Delete**: Clear along locked axes. When this area is already empty weld the neighboring planes.
-+ **Ctrl+Delete**: Zealous crop
++ **Shift+Delete**: Clear along locked-to axes. When this area is already empty weld the neighboring planes.
++ **Ctrl+Delete**: Zealous crop or crop to selection
 + **Shift+Insert**: Add an empty plane at 3D cursor, thickness can be increased with numerical keys. This changes the size of the map.
 
 -----------------------

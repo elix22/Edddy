@@ -31,6 +31,7 @@ class ResourceMaster;
 class EffectMaster;
 class InputMaster;
 class EdddyCam;
+class BlockMap;
 
 #define RM GetSubsystem<ResourceMaster>()
 #define FX GetSubsystem<EffectMaster>()
@@ -53,12 +54,15 @@ public:
     float Sine(const float freq, const float min, const float max, const float shift = 0.0f);
     float Cosine(const float freq, const float min, const float max, const float shift = 0.0f);
     SharedPtr<EdddyCam> camera_;
+
+    BlockMap* GetMap() const { return blockMap_.Get(); }
 private:
     SharedPtr<UI> ui_;
     SharedPtr<Renderer> renderer_;
     SharedPtr<XMLFile> defaultStyle_;
 
     SharedPtr<Scene> scene_;
+    SharedPtr<BlockMap> blockMap_;
 
     void CreateConsoleAndDebugHud();
     void CreateScene();

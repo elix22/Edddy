@@ -10,6 +10,10 @@ class BlockInstance : public LogicComponent
     URHO3D_OBJECT(BlockInstance, LogicComponent);
 public:
     BlockInstance(Context* context);
+    virtual void OnNodeSet(Node* node);
+    bool SetBlock(Block* block, Quaternion rotation);
+    Block* GetBlock() const { return block_; }
+    Quaternion GetRotation() const { return rotation_; }
 protected:
     Block* block_;
 
