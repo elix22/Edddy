@@ -92,7 +92,7 @@ bool EditMaster::PickBlock()
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
     BlockInstance* blockInstance{ MC->GetMap()->GetBlockInstance(cursor->GetCoords()) };
-    if (blockInstance){
+    if (blockInstance && blockInstance->GetBlock()){
         cursor->GetNode()->SetRotation(blockInstance->GetRotation());
         return SetCurrentBlock(blockInstance->GetBlock());
     }
