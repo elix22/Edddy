@@ -205,8 +205,7 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
     int key{eventData[KeyDown::P_KEY].GetInt()};
-
-    Log::Write(1, String(key));
+    Log::Write(1, "Key pressed: " + String(key));
 
     pressedKeys_.Insert(key);
 
