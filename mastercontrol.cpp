@@ -49,57 +49,21 @@ void MasterControl::Setup()
 {
     engineParameters_["WindowTitle"] = "Edddy";
     engineParameters_["LogName"] = GetSubsystem<FileSystem>()->GetAppPreferencesDir("urho3d", "logs")+"edddy.log";
-    engineParameters_["ResourcePaths"] = "Data;CoreData;Resources;Resources/Blocks";
+    engineParameters_["ResourcePaths"] = "Data;CoreData;Resources;";
     engineParameters_["WindowIcon"] = "icon.png";
 
 //    engineParameters_["Fullscreen"] = false;
 //    engineParameters_["WindowWidth"] = 1280;
 //    engineParameters_["WindowHeight"] = 1024;
 }
+
+
 void MasterControl::Start()
 {
-    ENGINE->SetMaxFps(42);
+    ENGINE->SetMaxFps(80);
     SetRandomSeed(TIME->GetSystemTime());
     CACHE->SetAutoReloadResources(true);
-    CACHE->GetResource<Model>("CliffLowBend.mdl");
-    CACHE->GetResource<Model>("CliffBottomBend.mdl");
-    CACHE->GetResource<Model>("CliffBottomCorner.mdl");
-    CACHE->GetResource<Model>("CliffBottomEdge.mdl");
-    CACHE->GetResource<Model>("CliffBottomHillBendLeft.mdl");
-    CACHE->GetResource<Model>("CliffBottomHillBendRight.mdl");
-    CACHE->GetResource<Model>("CliffBottomHillLeft.mdl");
-    CACHE->GetResource<Model>("CliffBottomHillRight.mdl");
-    CACHE->GetResource<Model>("CliffLowBend.mdl");
-    CACHE->GetResource<Model>("CliffLowCorner.mdl");
-    CACHE->GetResource<Model>("CliffLowEdge.mdl");
-    CACHE->GetResource<Model>("CliffMiddleBend.mdl");
-    CACHE->GetResource<Model>("CliffMiddleCorner.mdl");
-    CACHE->GetResource<Model>("CliffMiddleEdge.mdl");
-    CACHE->GetResource<Model>("CliffMiddleTopBendLeft.mdl");
-    CACHE->GetResource<Model>("CliffMiddleTopBendRight.mdl");
-    CACHE->GetResource<Model>("CliffMiddleTopLeft.mdl");
-    CACHE->GetResource<Model>("CliffMiddleTopRight.mdl");
-    CACHE->GetResource<Model>("CliffToHillLeft.mdl");
-    CACHE->GetResource<Model>("CliffToHillRight.mdl");
-    CACHE->GetResource<Model>("CliffTopBend.mdl");
-    CACHE->GetResource<Model>("CliffTopCorner.mdl");
-    CACHE->GetResource<Model>("CliffTopEdge.mdl");
-    CACHE->GetResource<Model>("Flat.mdl");
-    CACHE->GetResource<Model>("HillBend.mdl");
-    CACHE->GetResource<Model>("HillCorner.mdl");
-    CACHE->GetResource<Model>("HillEdge.mdl");
-    CACHE->GetResource<Model>("RampBottomCenter.mdl");
-    CACHE->GetResource<Model>("RampBottomLeft.mdl");
-    CACHE->GetResource<Model>("RampBottomRight.mdl");
-    CACHE->GetResource<Model>("RampMiddleCenter.mdl");
-    CACHE->GetResource<Model>("RampMiddleLeft.mdl");
-    CACHE->GetResource<Model>("RampMiddleRight.mdl");
-    CACHE->GetResource<Model>("RampTopCenter.mdl");
-    CACHE->GetResource<Model>("RampTopLeft.mdl");
-    CACHE->GetResource<Model>("RampTopRight.mdl");
-    CACHE->GetResource<Model>("ToRampMiddleLeft.mdl");
-    CACHE->GetResource<Model>("ToRampMiddleRight.mdl");
-    CACHE->GetResource<Model>("ToRampTopLeft.mdl");
+    LoadBlocks();
     CACHE->GetResource<Model>("ToRampTopRight.mdl");
 
     context_->RegisterSubsystem(this);
@@ -114,6 +78,48 @@ void MasterControl::Start()
     CreateScene();
     CreateUI();
     SubscribeToEvents();
+}
+void MasterControl::LoadBlocks()
+{
+    CACHE->GetResource<Model>("Blocks/CliffLowBend.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffBottomBend.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffBottomCorner.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffBottomEdge.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffBottomHillBendLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffBottomHillBendRight.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffBottomHillLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffBottomHillRight.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffLowBend.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffLowCorner.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffLowEdge.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffMiddleBend.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffMiddleCorner.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffMiddleEdge.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffMiddleTopBendLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffMiddleTopBendRight.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffMiddleTopLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffMiddleTopRight.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffToHillLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffToHillRight.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffTopBend.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffTopCorner.mdl");
+    CACHE->GetResource<Model>("Blocks/CliffTopEdge.mdl");
+    CACHE->GetResource<Model>("Blocks/Flat.mdl");
+    CACHE->GetResource<Model>("Blocks/HillBend.mdl");
+    CACHE->GetResource<Model>("Blocks/HillCorner.mdl");
+    CACHE->GetResource<Model>("Blocks/HillEdge.mdl");
+    CACHE->GetResource<Model>("Blocks/RampBottomCenter.mdl");
+    CACHE->GetResource<Model>("Blocks/RampBottomLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/RampBottomRight.mdl");
+    CACHE->GetResource<Model>("Blocks/RampMiddleCenter.mdl");
+    CACHE->GetResource<Model>("Blocks/RampMiddleLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/RampMiddleRight.mdl");
+    CACHE->GetResource<Model>("Blocks/RampTopCenter.mdl");
+    CACHE->GetResource<Model>("Blocks/RampTopLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/RampTopRight.mdl");
+    CACHE->GetResource<Model>("Blocks/ToRampMiddleLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/ToRampMiddleRight.mdl");
+    CACHE->GetResource<Model>("Blocks/ToRampTopLeft.mdl");
 }
 void MasterControl::Stop()
 {

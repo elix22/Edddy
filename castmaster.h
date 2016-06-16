@@ -29,6 +29,8 @@ class CastMaster : public Object
 public:
     CastMaster(Context* context);
     bool PhysicsRayCast(PODVector<PhysicsRaycastResult>& hitResults, const Ray ray, const float distance, const unsigned collisionMask);
+    template <class T> T* RaycastToComponent(const Ray& ray);
+    bool CursorRaycast(const Ray& ray);
 };
 
 #endif // CASTMASTER_H

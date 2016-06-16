@@ -36,6 +36,8 @@ public:
     virtual void Update(float timeStep);
 
     Quaternion GetRotation() const { return node_->GetRotation(); }
+    float GetFov() const { return camera_->GetFov(); }
+    Ray GetScreenRay(float x, float y) const { return camera_->GetScreenRay(x, y); }
 private:
     SharedPtr<Camera> camera_;
     SharedPtr<Viewport> viewport_;

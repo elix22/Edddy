@@ -1,5 +1,8 @@
 #include "edddycursor.h"
+#include "edddycam.h"
 #include "resourcemaster.h"
+#include "inputmaster.h"
+#include "castmaster.h"
 #include "editmaster.h"
 #include "blockmap.h"
 
@@ -26,31 +29,20 @@ void EdddyCursor::OnNodeSet(Node *node)
     blockNode_ = node_->CreateChild("PREVIEW");
     blockModel_ = blockNode_->CreateComponent<StaticModel>();
 
-    for (int p{0}; p < 3; ++p){
-        Node* hitNode{ node_->CreateChild(String()+(p <  2 ? "X" : "Y") +
-                                          (p == 1 ? "Y" : "Z") +
-                                          "_PLANE") };
-        Vector<String> tag{};
-        tag.Push(String("Hit"));
-        hitNode->SetTags(tag);
+    RigidBody* rigidBody_{ node_->CreateComponent<RigidBody>() };
+    rigidBody_->SetKinematic(true);
 
-        hitNode->SetRotation(Quaternion(p == 1? -90.0f : 0.0f,
-                                        0.0f,
-                                        p == 2? -90.0f : 0.0f));
-        hitNode->SetScale(1000.0f);
-
-        StaticModel* hitPlane{ hitNode->CreateComponent<StaticModel>() };
-        hitPlane->SetModel(RM->GetModel("Plane"));
-        hitPlane->SetMaterial(RM->GetMaterial("Invisible"));
-
-        hitPlanes_.Push(hitNode);
+    for (int c{0}; c < 3; ++c){
+        CollisionShape* hitPlane{ node_->CreateComponent<CollisionShape>() };
+        hitPlane->SetBox(Vector3(c == 0 ? 0.0f : 1000.0f,
+                                 c == 1 ? 0.0f : 1000.0f,
+                                 c == 2 ? 0.0f : 1000.0f));
     }
-    UpdateHitPlanes();
 
     boxNode_ = node_->CreateChild("BOX");
     boxModel_ = boxNode_->CreateComponent<StaticModel>();
-    boxModel_->SetModel(RM->GetModel("Cursor"));
-    boxModel_->SetMaterial(RM->GetMaterial("TransparentGlow"));
+    boxModel_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Cursor"));
+    boxModel_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("TransparentGlow"));
 
     UpdateSizeAndOffset();
     SetCoords(IntVector3(MAP_WIDTH / 2, 0, MAP_DEPTH / 2));
@@ -76,25 +68,7 @@ void EdddyCursor::SetAxisLock(std::bitset<3> lock)
     if (lock != axisLock_){
         previousAxisLock_ = axisLock_;
         axisLock_ = lock;
-
-        UpdateHitPlanes();
     }
-}
-void EdddyCursor::UpdateHitPlanes()
-{
-    for (unsigned p{0}; p < hitPlanes_.Size(); ++p)
-            switch (p) {
-            default: break;
-            case 0:
-                hitPlanes_[p]->SetEnabled((axisLock_.count() == 2) ^ (axisLock_[0] ^ axisLock_[2]));
-                break;
-            case 1:
-                hitPlanes_[p]->SetEnabled((axisLock_.count() == 2) ^ (axisLock_[0] ^ axisLock_[1]));
-                break;
-            case 2:
-                hitPlanes_[p]->SetEnabled((axisLock_.count() == 2) ^ (axisLock_[1] ^ axisLock_[2]));
-                break;
-            }
 }
 
 void EdddyCursor::Step(IntVector3 step)
@@ -136,17 +110,60 @@ void EdddyCursor::Step(IntVector3 step)
 
 void EdddyCursor::SetCoords(IntVector3 coords)
 {
+    if ( (coords.x_ < 0 || coords.x_ >= MAP_WIDTH)
+      || (coords.y_ < 0 || coords.y_ >= MAP_HEIGHT)
+      || (coords.z_ < 0 || coords.z_ >= MAP_DEPTH)
+      ||  coords == coords_)
+        return;
+
     coords_ = coords;
     node_->SetPosition(Vector3{ coords.x_ * BLOCK_WIDTH,
                                 coords.y_ * BLOCK_HEIGHT,
-                                coords.z_ * BLOCK_DEPTH});
+                                coords.z_ * BLOCK_DEPTH });
     SendEvent(E_CURSORSTEP);
+}
+
+void EdddyCursor::MoveTo(Vector3 position)
+{
+    //if (grid)
+    IntVector3 coords{ static_cast<int>(round(position.x_ / BLOCK_WIDTH)),
+                       static_cast<int>(round(position.y_ / BLOCK_HEIGHT)),
+                       static_cast<int>(round(position.z_ / BLOCK_DEPTH)) };
+
+    SetCoords(IntVector3(
+            axisLock_[0] ? coords.x_ : coords_.x_,
+            axisLock_[1] ? coords.y_ : coords_.y_,
+            axisLock_[2] ? coords.z_ : coords_.z_
+                  ));
 }
 
 void EdddyCursor::Rotate(bool clockWise)
 {
     Vector3 axis{ Vector3::UP };
     node_->Rotate(Quaternion(clockWise ? 90.0f :  -90.0f, axis), TS_WORLD);
+}
+
+void EdddyCursor::HandleMouseMove(Vector2 mousePos)
+{
+    Ray mouseRay{ GetSubsystem<InputMaster>()->MouseRay() };
+
+    PODVector<PhysicsRaycastResult> hitResults{};
+
+    if (GetSubsystem<CastMaster>()->PhysicsRayCast(hitResults, mouseRay, M_LARGE_VALUE, M_MAX_UNSIGNED)){
+
+        float closest{ M_INFINITY };
+        PhysicsRaycastResult closestResult;
+        for (PhysicsRaycastResult result: hitResults)
+            if ( (((axisLock_.count() == 2) ^ (axisLock_[1] ^ axisLock_[2])) && Abs(result.normal_.x_) > 0.5f)
+              || (((axisLock_.count() == 2) ^ (axisLock_[0] ^ axisLock_[2])) && Abs(result.normal_.y_) > 0.5f)
+              || (((axisLock_.count() == 2) ^ (axisLock_[0] ^ axisLock_[1])) && Abs(result.normal_.z_) > 0.5f)
+              && result.distance_ < closest)
+            {
+                closest = result.distance_;
+                closestResult = result;
+            }
+        MoveTo(closestResult.position_);
+    }
 }
 
 void EdddyCursor::UpdateModel(StringHash eventType, VariantMap& eventData)

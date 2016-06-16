@@ -19,42 +19,55 @@
 
 #include "inputmaster.h"
 #include "editmaster.h"
+#include "castmaster.h"
 #include "edddycam.h"
 #include "edddycursor.h"
 
 using namespace LucKey;
 
-InputMaster::InputMaster(Context* context) : Object(context)
+InputMaster::InputMaster(Context* context) : Object(context),
+    mousePos_{ Vector2::ONE * 0.5f }
 {
-    for (int a{0}; a < static_cast<int>(InputAction::ALL_ACTIONS); ++a){
+    for (int a{0}; a < ALL_ACTIONS; ++a){
         actionTime_[a] = 0.0f;
     }
 
-    keyBindings_[KEY_UP]     = buttonBindings_[static_cast<int>(SB_DPAD_UP)]    = ACTION_UP;
-    keyBindings_[KEY_DOWN]   = buttonBindings_[static_cast<int>(SB_DPAD_DOWN)]  = ACTION_DOWN;
-    keyBindings_[KEY_LEFT]   = buttonBindings_[static_cast<int>(SB_DPAD_LEFT)]  = ACTION_LEFT;
-    keyBindings_[KEY_RIGHT]  = buttonBindings_[static_cast<int>(SB_DPAD_RIGHT)] = ACTION_RIGHT;
-    keyBindings_[93]/*]*/    = buttonBindings_[static_cast<int>(SB_DPAD_RIGHT)] = ACTION_FORWARD;
-    keyBindings_[91]/*[*/    = buttonBindings_[static_cast<int>(SB_DPAD_RIGHT)] = ACTION_BACK;
-    keyBindings_[KEY_X]      = ACTION_X_AXIS;
-    keyBindings_[KEY_Y]      = ACTION_Y_AXIS;
-    keyBindings_[KEY_Z]      = ACTION_Z_AXIS;
-    keyBindings_[46]/*.*/    = ACTION_NEXT_BLOCK;
-    keyBindings_[44]/*,*/    = ACTION_PREVIOUS_BLOCK;
-    keyBindings_[KEY_0]      = ACTION_ROTATE_CCW;
-    keyBindings_[KEY_9]      = ACTION_ROTATE_CW;
-    keyBindings_[47]/*/*/    = ACTION_PICKBLOCK;
-    keyBindings_[KEY_RETURN] = buttonBindings_[static_cast<int>(SB_CROSS)]      = ACTION_CONFIRM;
-    keyBindings_[KEY_ESCAPE] = buttonBindings_[static_cast<int>(SB_CIRCLE)]     = ACTION_CANCEL;
+    keyBindings_[KEY_UP]     = joystickButtonBindings_[SB_DPAD_UP]                                         = ACTION_UP;
+    keyBindings_[KEY_DOWN]   = joystickButtonBindings_[SB_DPAD_DOWN]                                       = ACTION_DOWN;
+    keyBindings_[KEY_LEFT]   = joystickButtonBindings_[SB_DPAD_LEFT]                                       = ACTION_LEFT;
+    keyBindings_[KEY_RIGHT]  = joystickButtonBindings_[SB_DPAD_RIGHT]                                      = ACTION_RIGHT;
+    keyBindings_[93]/*]*/    = joystickButtonBindings_[SB_DPAD_RIGHT]                                      = ACTION_FORWARD;
+    keyBindings_[91]/*[*/    = joystickButtonBindings_[SB_DPAD_RIGHT]                                      = ACTION_BACK;
+    keyBindings_[KEY_X]                                                                                    = ACTION_X_AXIS;
+    keyBindings_[KEY_Y]                                                                                    = ACTION_Y_AXIS;
+    keyBindings_[KEY_Z]                                                                                    = ACTION_Z_AXIS;
+    keyBindings_[46]/*.*/                                                                                  = ACTION_NEXT_BLOCK;
+    keyBindings_[44]/*,*/                                                                                  = ACTION_PREVIOUS_BLOCK;
+    keyBindings_[KEY_0]                                                                                    = ACTION_ROTATE_CCW;
+    keyBindings_[KEY_9]                                                                                    = ACTION_ROTATE_CW;
+    keyBindings_[47]/*/*/                                             = mouseButtonBindings_[MOUSEB_RIGHT] = ACTION_PICKBLOCK;
+    keyBindings_[KEY_RETURN] = joystickButtonBindings_[SB_CROSS]      = mouseButtonBindings_[MOUSEB_LEFT]  = ACTION_CONFIRM;
+    keyBindings_[KEY_ESCAPE] = joystickButtonBindings_[SB_CIRCLE]                                          = ACTION_CANCEL;
 
     SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(InputMaster, HandleKeyDown));
     SubscribeToEvent(E_KEYUP, URHO3D_HANDLER(InputMaster, HandleKeyUp));
     SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(InputMaster, HandleJoyButtonDown));
     SubscribeToEvent(E_JOYSTICKBUTTONUP, URHO3D_HANDLER(InputMaster, HandleJoyButtonUp));
     SubscribeToEvent(E_JOYSTICKAXISMOVE, URHO3D_HANDLER(InputMaster, HandleJoystickAxisMove));
+    SubscribeToEvent(E_MOUSEMOVE, URHO3D_HANDLER(InputMaster, HandleMouseMove));
+    SubscribeToEvent(E_MOUSEBUTTONDOWN, URHO3D_HANDLER(InputMaster, HandleMouseButtonDown));
+    SubscribeToEvent(E_MOUSEBUTTONUP, URHO3D_HANDLER(InputMaster, HandleMouseButtonUp));
     SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(InputMaster, HandleUpdate));
 
-    INPUT->SetMouseMode(MM_FREE);
+    SubscribeToEvent(E_CURSORSTEP, URHO3D_HANDLER(InputMaster, HandleCursorStep));
+
+    INPUT->SetMouseVisible(true);
+//    INPUT->SetMouseMode(MM_FREE);
+}
+void InputMaster::HandleCursorStep(StringHash eventType, VariantMap &eventData)
+{ (void)eventType; (void)eventData;
+
+    actionTime_[ACTION_CONFIRM] = ACTION_INTERVAL;
 }
 
 void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
@@ -71,16 +84,22 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
                 activeActions.Push(action);
         }
     }
-    //Check for joystick button presses
-//    for (int p : MC->GetPlayers()){
-
-//        for (int button : pressedJoystickButtons_[p-1])
-//            if (buttonBindingsPlayer_[p].Contains(button)){
-//                PlayerInputAction action{ buttonBindingsPlayer_[p][button]};
-//                if (!activeActions.player_[p].Contains(action))
-//                    activeActions.player_[p].Push(action);
-//            }
-//    }
+    //Convert mouse button presses to actions
+    for (int button : pressedMouseButtons_){
+        if (mouseButtonBindings_.Contains(button)){
+            InputAction action{ mouseButtonBindings_[button] };
+            if (!activeActions.Contains(action))
+                activeActions.Push(action);
+        }
+    }
+    //Convert jostick button presses to actions
+    for (int button : pressedJoystickButtons_){
+        if (joystickButtonBindings_.Contains(button)){
+            InputAction action{ joystickButtonBindings_[button] };
+            if (!activeActions.Contains(action))
+                activeActions.Push(action);
+        }
+    }
 
     HandleActions(activeActions, timeStep);
 }
@@ -104,7 +123,7 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
             unusedActions.Remove(action);
 
         if (actionTime_[action] == 0.0f
-         || actionTime_[action] > ACTION_INTERVAL)
+         || actionTime_[action] >= ACTION_INTERVAL)
         {
             actionTime_[action] = 0.0f;
 
@@ -221,14 +240,13 @@ void InputMaster::HandleKeyUp(StringHash eventType, VariantMap &eventData)
 
     int key{ eventData[KeyUp::P_KEY].GetInt() };
 
-    if (pressedKeys_.Contains(key))
+    while (pressedKeys_.Contains(key))
         pressedKeys_.Remove(key);
 }
 
 void InputMaster::HandleJoyButtonDown(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
-    int joystickId{ eventData[JoystickButtonDown::P_JOYSTICKID].GetInt() };
     SixaxisButton button{ static_cast<SixaxisButton>(eventData[JoystickButtonDown::P_BUTTON].GetInt()) };
 
     if (!pressedJoystickButtons_.Contains(button))
@@ -237,16 +255,14 @@ void InputMaster::HandleJoyButtonDown(StringHash eventType, VariantMap &eventDat
 void InputMaster::HandleJoyButtonUp(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
-    int joystickId{ eventData[JoystickButtonDown::P_JOYSTICKID].GetInt() };
     SixaxisButton button{ static_cast<SixaxisButton>(eventData[JoystickButtonUp::P_BUTTON].GetInt()) };
 
-    if (pressedJoystickButtons_.Contains(button))
+    while (pressedJoystickButtons_.Contains(button))
         pressedJoystickButtons_.Remove(button);
 }
 void InputMaster::HandleJoystickAxisMove(StringHash eventType, VariantMap& eventData)
 { (void)eventType;
 
-    int joystickId{ eventData[JoystickAxisMove::P_JOYSTICKID].GetInt() };
     int axis{ eventData[JoystickAxisMove::P_AXIS].GetInt() };
     float position{ eventData[JoystickAxisMove::P_POSITION].GetFloat() };
 
@@ -265,4 +281,45 @@ void InputMaster::CorrectForCameraYaw(Vector3& vec3)
 {
     Vector3 camRot{MC->GetCamera()->GetRotation().EulerAngles()};
     vec3 = Quaternion(camRot.y_, Vector3::UP) * vec3;
+}
+
+void InputMaster::HandleMouseMove(StringHash eventType, VariantMap &eventData)
+{ (void)eventType;
+
+    Vector2 dPos{ static_cast<float>(eventData[MouseMove::P_DX].GetInt()),
+                  static_cast<float>(eventData[MouseMove::P_DY].GetInt()) };
+    mousePos_ += Vector2( dPos.x_ / GRAPHICS->GetWidth(),
+                          dPos.y_ / GRAPHICS->GetHeight());
+
+    Vector2 mousePos{ static_cast<float>(INPUT->GetMousePosition().x_ / GRAPHICS->GetWidth()),
+                      static_cast<float>(INPUT->GetMousePosition().y_ / GRAPHICS->GetHeight()) };
+
+
+    cursor_->HandleMouseMove(mousePos);
+//    cursor_->HandleMouseMove(mousePos_);
+    //    GetSubsystem<CastMaster>()->CursorRaycast(MouseRay());
+}
+
+void InputMaster::HandleMouseButtonDown(StringHash eventType, VariantMap& eventData)
+{ (void)eventType;
+
+    int button{ eventData[MouseButtonDown::P_BUTTON].GetInt() };
+    if (!pressedMouseButtons_.Contains(button))
+        pressedMouseButtons_.Push(button);
+
+}
+
+void InputMaster::HandleMouseButtonUp(StringHash eventType, VariantMap& eventData)
+{ (void)eventType;
+
+    int button{ eventData[MouseButtonUp::P_BUTTON].GetInt() };
+    while (pressedMouseButtons_.Contains(button))
+        pressedMouseButtons_.Remove(button);
+}
+
+Ray InputMaster::MouseRay()
+{
+    Ray mouseRay{MC->GetCamera()->GetScreenRay(mousePos_.x_, mousePos_.y_)};
+
+    return mouseRay;
 }

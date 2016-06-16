@@ -40,7 +40,7 @@ typedef Vector<InputAction> InputActions;
 
 class EdddyCursor;
 
-#define ACTION_INTERVAL 0.2f
+#define ACTION_INTERVAL 0.16f
 
 class InputMaster : public Object
 {
@@ -51,12 +51,16 @@ public:
     void SetCursor(EdddyCursor* cursor) { cursor_ = cursor; }
     EdddyCursor* GetCursor() const { return cursor_; }
     bool CheckActionable(InputAction action, const InputActions& inputActions, bool reset = false);
+    Ray MouseRay();
 private:
     EdddyCursor* cursor_;
+    Vector2 mousePos_;
     HashMap<int, InputAction> keyBindings_;
-    HashMap<int, InputAction> buttonBindings_;
+    HashMap<int, InputAction> mouseButtonBindings_;
+    HashMap<int, InputAction> joystickButtonBindings_;
 
     Vector<int> pressedKeys_;
+    Vector<int> pressedMouseButtons_;
     Vector<LucKey::SixaxisButton> pressedJoystickButtons_;
     Vector2 leftStickPosition_;
     Vector2 rightStickPosition_;
@@ -69,6 +73,11 @@ private:
     void HandleJoyButtonDown(StringHash eventType, VariantMap &eventData);
     void HandleJoyButtonUp(StringHash eventType, VariantMap &eventData);
     void HandleJoystickAxisMove(StringHash eventType, VariantMap& eventData);
+    void HandleMouseMove(StringHash eventType, VariantMap& eventData);
+    void HandleMouseButtonDown(StringHash eventType, VariantMap& eventData);
+    void HandleMouseButtonUp(StringHash eventType, VariantMap& eventData);
+
+    void HandleCursorStep(StringHash eventType, VariantMap& eventData);
 
     void HandleActions(const InputActions &actions, float timeStep);
     IntVector3 GetMoveFromActions(const InputActions& actions);

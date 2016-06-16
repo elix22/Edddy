@@ -16,12 +16,16 @@ public:
     virtual void DelayedStart();
 
     void UpdateSizeAndOffset();
-
     void SetAxisLock(std::bitset<3> lock);
+
     void Step(IntVector3 step);
     void SetCoords(IntVector3 coords);
     IntVector3 GetCoords() const { return coords_; }
+    void MoveTo(Vector3 position);
+
     void Rotate(bool clockWise);
+
+    void HandleMouseMove(Vector2 mousePos);
 private:
     IntVector3 coords_;
     Node* boxNode_;
@@ -31,7 +35,7 @@ private:
 
     std::bitset<3> axisLock_;
     std::bitset<3> previousAxisLock_;
-    Vector<Node*> hitPlanes_;
+    AnimatedModel* hitPlanes_;
 
     void UpdateHitPlanes();
     void UpdateModel(StringHash eventType, VariantMap& eventData);

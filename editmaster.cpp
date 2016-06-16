@@ -18,18 +18,18 @@ void EditMaster::LoadBlocks()
     PODVector<Model*> models{};
     CACHE->GetResources<Model>(models);
     //Remove non-block models
-//    for (Model* model: models){
+    for (Model* model: models){
 
-//        if (!model->GetName().Contains("Blocks", false))
-//            models.Remove(model);
+        if (!model->GetName().Contains("Blocks", false))
+            models.Remove(model);
 
-//    }
+    }
 
     for (Model* model: models){
 
         Block* block{ new Block(context_) };
         block->model_ = model;
-        block->material_ = RM->GetMaterial("VCol");
+        block->material_ = GetSubsystem<ResourceMaster>()->GetMaterial("VCol");
 
         blocks_.Push(block);
     }

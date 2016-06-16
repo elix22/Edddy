@@ -22,8 +22,8 @@ void GridBlock::OnNodeSet(Node *node)
 
     centerNode_ = gridNode_->CreateChild("CENTER");
     centerModel_ = centerNode_->CreateComponent<AnimatedModel>();
-    centerModel_->SetModel(RM->GetModel("Center"));
-    centerModel_->SetMaterial(RM->GetMaterial("VCol"));
+    centerModel_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
+    centerModel_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("VCol"));
 
     for (int c{0}; c < 8; ++c) {
 
@@ -39,8 +39,8 @@ void GridBlock::OnNodeSet(Node *node)
                                     0.0f), TS_PARENT);
 
         StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
-        cornerModel->SetModel(RM->GetModel("Corner"));
-        cornerModel->SetMaterial(RM->GetMaterial("CornerGlowInactive"));
+        cornerModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
+        cornerModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerGlowInactive"));
 
         cornerNodes_.Push(cornerNode);
     }

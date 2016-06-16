@@ -18,7 +18,8 @@
 */
 
 #include "castmaster.h"
-
+#include "inputmaster.h"
+#include "edddycursor.h"
 
 CastMaster::CastMaster(Context* context) : Object(context)
 {
@@ -32,4 +33,20 @@ bool CastMaster::PhysicsRayCast(PODVector<PhysicsRaycastResult> &hitResults, con
         MC->GetScene()->GetComponent<PhysicsWorld>()->Raycast(hitResults, ray, distance, collisionMask);
 
     return (hitResults.Size() > 0);
+}
+
+///Untested
+template <class T> T* CastMaster::RaycastToComponent(const Ray& ray)
+{
+    PODVector<RayQueryResult> results;
+    RayOctreeQuery query(results, ray, RAY_TRIANGLE, 1000.0f, DRAWABLE_GEOMETRY);
+    MC->GetScene()->GetComponent<Octree>()->Raycast(query);
+
+    for (RayQueryResult r : results){
+
+            if (r.node_->HasComponent<T>()){
+                return r.node_->GetComponent<T>();
+            }
+    }
+    return nullptr;
 }

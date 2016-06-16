@@ -66,7 +66,7 @@ void EdddyCam::SetupViewport()
 
 void EdddyCam::Update(float timeStep)
 {
-///Quick and temporary camera input
+///Quick and temporary fly mode
 
     float speed{1.0f + 7.0f * INPUT->GetKeyDown(KEY_SHIFT)};
     node_->Translate( speed * timeStep *

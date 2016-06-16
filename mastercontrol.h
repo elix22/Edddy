@@ -33,9 +33,6 @@ class InputMaster;
 class EdddyCam;
 class BlockMap;
 
-#define RM GetSubsystem<ResourceMaster>()
-#define FX GetSubsystem<EffectMaster>()
-
 class MasterControl : public Application
 {
     URHO3D_OBJECT(MasterControl, Application);
@@ -78,6 +75,7 @@ private:
     bool drawDebug_{false};
     void HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData);
     float SinePhase(float freq, float shift);
+    void LoadBlocks();
 };
 
 #endif // MASTERCONTROL_H
