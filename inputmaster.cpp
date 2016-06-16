@@ -36,15 +36,15 @@ InputMaster::InputMaster(Context* context) : Object(context),
     keyBindings_[KEY_DOWN]   = joystickButtonBindings_[SB_DPAD_DOWN]                                       = ACTION_DOWN;
     keyBindings_[KEY_LEFT]   = joystickButtonBindings_[SB_DPAD_LEFT]                                       = ACTION_LEFT;
     keyBindings_[KEY_RIGHT]  = joystickButtonBindings_[SB_DPAD_RIGHT]                                      = ACTION_RIGHT;
-    keyBindings_[93]/*]*/    = joystickButtonBindings_[SB_DPAD_RIGHT]                                      = ACTION_FORWARD;
-    keyBindings_[91]/*[*/    = joystickButtonBindings_[SB_DPAD_RIGHT]                                      = ACTION_BACK;
+    keyBindings_[93]/*]*/    = joystickButtonBindings_[SB_R1]                                              = ACTION_FORWARD;
+    keyBindings_[91]/*[*/    = joystickButtonBindings_[SB_L1]                                              = ACTION_BACK;
     keyBindings_[KEY_X]                                                                                    = ACTION_X_AXIS;
     keyBindings_[KEY_Y]                                                                                    = ACTION_Y_AXIS;
     keyBindings_[KEY_Z]                                                                                    = ACTION_Z_AXIS;
     keyBindings_[46]/*.*/                                                                                  = ACTION_NEXT_BLOCK;
     keyBindings_[44]/*,*/                                                                                  = ACTION_PREVIOUS_BLOCK;
-    keyBindings_[KEY_0]                                                                                    = ACTION_ROTATE_CCW;
-    keyBindings_[KEY_9]                                                                                    = ACTION_ROTATE_CW;
+    keyBindings_[KEY_0]      = joystickButtonBindings_[SB_R2]                                              = ACTION_ROTATE_CCW;
+    keyBindings_[KEY_9]      = joystickButtonBindings_[SB_L2]                                              = ACTION_ROTATE_CW;
     keyBindings_[47]/*/*/                                             = mouseButtonBindings_[MOUSEB_RIGHT] = ACTION_PICKBLOCK;
     keyBindings_[KEY_RETURN] = joystickButtonBindings_[SB_CROSS]      = mouseButtonBindings_[MOUSEB_LEFT]  = ACTION_CONFIRM;
     keyBindings_[KEY_ESCAPE] = joystickButtonBindings_[SB_CIRCLE]                                          = ACTION_CANCEL;
@@ -62,7 +62,6 @@ InputMaster::InputMaster(Context* context) : Object(context),
     SubscribeToEvent(E_CURSORSTEP, URHO3D_HANDLER(InputMaster, HandleCursorStep));
 
     INPUT->SetMouseVisible(true);
-//    INPUT->SetMouseMode(MM_FREE);
 }
 void InputMaster::HandleCursorStep(StringHash eventType, VariantMap &eventData)
 { (void)eventType; (void)eventData;
@@ -209,8 +208,7 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
 
     Log::Write(1, String(key));
 
-    if (!pressedKeys_.Contains(key))
-        pressedKeys_.Push(key);
+    pressedKeys_.Insert(key);
 
     switch (key){
     case KEY_ESCAPE:{
@@ -238,27 +236,19 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
 void InputMaster::HandleKeyUp(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
-    int key{ eventData[KeyUp::P_KEY].GetInt() };
-
-    while (pressedKeys_.Contains(key))
-        pressedKeys_.Remove(key);
+    pressedKeys_.Erase( eventData[KeyUp::P_KEY].GetInt() );
 }
 
 void InputMaster::HandleJoyButtonDown(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
-    SixaxisButton button{ static_cast<SixaxisButton>(eventData[JoystickButtonDown::P_BUTTON].GetInt()) };
+    pressedJoystickButtons_.Insert( eventData[JoystickButtonDown::P_BUTTON].GetInt() );
 
-    if (!pressedJoystickButtons_.Contains(button))
-        pressedJoystickButtons_.Push(button);
 }
 void InputMaster::HandleJoyButtonUp(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
-    SixaxisButton button{ static_cast<SixaxisButton>(eventData[JoystickButtonUp::P_BUTTON].GetInt()) };
-
-    while (pressedJoystickButtons_.Contains(button))
-        pressedJoystickButtons_.Remove(button);
+    pressedJoystickButtons_.Erase( eventData[JoystickButtonUp::P_BUTTON].GetInt() );
 }
 void InputMaster::HandleJoystickAxisMove(StringHash eventType, VariantMap& eventData)
 { (void)eventType;
@@ -303,18 +293,13 @@ void InputMaster::HandleMouseMove(StringHash eventType, VariantMap &eventData)
 void InputMaster::HandleMouseButtonDown(StringHash eventType, VariantMap& eventData)
 { (void)eventType;
 
-    int button{ eventData[MouseButtonDown::P_BUTTON].GetInt() };
-    if (!pressedMouseButtons_.Contains(button))
-        pressedMouseButtons_.Push(button);
-
+    pressedMouseButtons_.Insert( eventData[MouseButtonDown::P_BUTTON].GetInt() );
 }
 
 void InputMaster::HandleMouseButtonUp(StringHash eventType, VariantMap& eventData)
 { (void)eventType;
 
-    int button{ eventData[MouseButtonUp::P_BUTTON].GetInt() };
-    while (pressedMouseButtons_.Contains(button))
-        pressedMouseButtons_.Remove(button);
+    pressedMouseButtons_.Erase( eventData[MouseButtonUp::P_BUTTON].GetInt() );
 }
 
 Ray InputMaster::MouseRay()

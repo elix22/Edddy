@@ -59,9 +59,10 @@ private:
     HashMap<int, InputAction> mouseButtonBindings_;
     HashMap<int, InputAction> joystickButtonBindings_;
 
-    Vector<int> pressedKeys_;
-    Vector<int> pressedMouseButtons_;
-    Vector<LucKey::SixaxisButton> pressedJoystickButtons_;
+    HashSet<int> pressedKeys_;
+    HashSet<int> pressedMouseButtons_;
+    HashSet<int> pressedJoystickButtons_;
+
     Vector2 leftStickPosition_;
     Vector2 rightStickPosition_;
 

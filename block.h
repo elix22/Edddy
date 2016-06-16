@@ -4,7 +4,6 @@
 #include <Urho3D/Urho3D.h>
 #include "luckey.h"
 
-//For holding resource pointers
 class Block : public Object
 {
     friend class EditMaster;
@@ -19,7 +18,7 @@ private:
     String name_;
     Model* model_;
     Material* material_;
-    void MatchMaterialw() {}
+//    void MatchMaterial() {}
 };
 
 #endif // BLOCK_H

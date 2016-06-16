@@ -19,11 +19,9 @@
 
 #include "castmaster.h"
 #include "inputmaster.h"
-#include "edddycursor.h"
 
 CastMaster::CastMaster(Context* context) : Object(context)
 {
-
 }
 
 bool CastMaster::PhysicsRayCast(PODVector<PhysicsRaycastResult> &hitResults, const Ray ray,
