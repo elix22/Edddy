@@ -19,13 +19,14 @@ public:
     virtual void Update(float timeStep);
     void HandleCursorStep(StringHash eventType, VariantMap& evenData);
     virtual void DelayedStart();
+    bool WithinLock();
 private:
     IntVector3 coords_;
 
     Node* gridNode_;
     Node* centerNode_;
     Vector<Node*> cornerNodes_;
-    AnimatedModel* centerModel_;
+    StaticModel* centerModel_;
     //Called by BlockMap
     void Init(IntVector3 coords);
     void SetCoords(IntVector3 coords);

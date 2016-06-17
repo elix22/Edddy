@@ -69,9 +69,10 @@ Here you can change the size of the map, the grid and the block offset.
 ## Other tools and shortkeys:
 
 + **F1** or **Alt+H**: Help
-+ **Enter**/**Space**: Alternative for left mouse click.
++ **Enter**/**Space**: Apply tool
++ **/**: Pick block or hold to create stamp
 + **Q**: Eraser
-+ **%**: Random, picking a random tile from all the tiles in a stamp every time a block is put.
++ **%**: Random, picks a random block from all the blocks in the current stamp every time a block is put.
 + **O**: Type select
 + **Backspace**: Select previous tool
 + **#** : Toggles between grid and free placement
@@ -105,4 +106,5 @@ Layers allow for multiple blocks at the same coordinates. Ctrl combined with a n
 
 ## EMP Format
 
-EMP stands for Edddy Map
+EMP stands for Edddy Map. It contains the relative paths for the models and materials () and a list of Blocks. Each Block has an ID, model(name) and material(name).  
+Furthermore it contains a list of BlockInstances. Each containing a position, rotation and BlockID.

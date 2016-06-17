@@ -43,8 +43,8 @@ InputMaster::InputMaster(Context* context) : Object(context),
     keyBindings_[KEY_Z]                                                                                    = ACTION_Z_AXIS;
     keyBindings_[46]/*.*/                                                                                  = ACTION_NEXT_BLOCK;
     keyBindings_[44]/*,*/                                                                                  = ACTION_PREVIOUS_BLOCK;
-    keyBindings_[KEY_0]      = joystickButtonBindings_[SB_R2]                                              = ACTION_ROTATE_CCW;
-    keyBindings_[KEY_9]      = joystickButtonBindings_[SB_L2]                                              = ACTION_ROTATE_CW;
+    keyBindings_[KEY_0]      = joystickButtonBindings_[SB_R2]                                              = ACTION_ROTATE_CW;
+    keyBindings_[KEY_9]      = joystickButtonBindings_[SB_L2]                                              = ACTION_ROTATE_CCW;
     keyBindings_[47]/*/*/                                             = mouseButtonBindings_[MOUSEB_RIGHT] = ACTION_PICKBLOCK;
     keyBindings_[KEY_RETURN] = joystickButtonBindings_[SB_CROSS]      = mouseButtonBindings_[MOUSEB_LEFT]  = ACTION_CONFIRM;
     keyBindings_[KEY_ESCAPE] = joystickButtonBindings_[SB_CIRCLE]                                          = ACTION_CANCEL;
@@ -284,7 +284,7 @@ void InputMaster::HandleMouseMove(StringHash eventType, VariantMap &eventData)
                       static_cast<float>(INPUT->GetMousePosition().y_ / GRAPHICS->GetHeight()) };
 
 
-    cursor_->HandleMouseMove(mousePos);
+    cursor_->HandleMouseMove();
 //    cursor_->HandleMouseMove(mousePos_);
     //    GetSubsystem<CastMaster>()->CursorRaycast(MouseRay());
 }

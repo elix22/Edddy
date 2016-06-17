@@ -60,7 +60,7 @@ void MasterControl::Setup()
 
 void MasterControl::Start()
 {
-    ENGINE->SetMaxFps(80);
+//    ENGINE->SetMaxFps(80);
     SetRandomSeed(TIME->GetSystemTime());
     CACHE->SetAutoReloadResources(true);
     LoadBlocks();

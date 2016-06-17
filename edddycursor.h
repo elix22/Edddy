@@ -17,6 +17,7 @@ public:
 
     void UpdateSizeAndOffset();
     void SetAxisLock(std::bitset<3> lock);
+    std::bitset<3> GetAxisLock() { return axisLock_; }
 
     void Step(IntVector3 step);
     void SetCoords(IntVector3 coords);
@@ -25,7 +26,7 @@ public:
 
     void Rotate(bool clockWise);
 
-    void HandleMouseMove(Vector2 mousePos);
+    void HandleMouseMove();
 private:
     IntVector3 coords_;
     Node* boxNode_;

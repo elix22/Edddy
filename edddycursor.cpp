@@ -2,6 +2,7 @@
 #include "edddycam.h"
 #include "resourcemaster.h"
 #include "inputmaster.h"
+#include "effectmaster.h"
 #include "castmaster.h"
 #include "editmaster.h"
 #include "blockmap.h"
@@ -68,6 +69,7 @@ void EdddyCursor::SetAxisLock(std::bitset<3> lock)
     if (lock != axisLock_){
         previousAxisLock_ = axisLock_;
         axisLock_ = lock;
+        SendEvent(E_CURSORSTEP);
     }
 }
 
@@ -84,23 +86,23 @@ void EdddyCursor::Step(IntVector3 step)
         }
     } else {
         switch (axisLock_.to_ulong()) {
-        case 1: step = IntVector3(step.x_ + step.y_, 0, 0);
+        case 1: step = IntVector3(step.x_ + step.y_ + step.z_, 0, 0);
             break;
-        case 2: step = IntVector3(0, step.x_ + step.y_, 0);
+        case 2: step = IntVector3(0, step.x_ + step.y_ + step.z_, 0);
             break;
-        case 4: step = IntVector3(0, 0, step.x_ + step.y_);
+        case 4: step = IntVector3(0, 0, step.x_ + step.y_ + step.z_);
             break;
         }
     }
 
 
     IntVector3 resultingCoords{ coords_ + step };
-    if (resultingCoords.x_ < 0 ||
-        resultingCoords.y_ < 0 ||
-        resultingCoords.z_ < 0 ||
-        resultingCoords.x_ >= MAP_WIDTH  ||
-        resultingCoords.y_ >= MAP_HEIGHT ||
-        resultingCoords.z_ >= MAP_DEPTH)
+    if (resultingCoords.x_ < 0
+     || resultingCoords.y_ < 0
+     || resultingCoords.z_ < 0
+     || resultingCoords.x_ >= MAP_WIDTH
+     || resultingCoords.y_ >= MAP_HEIGHT
+     || resultingCoords.z_ >= MAP_DEPTH)
     {
         return;
     }
@@ -117,9 +119,11 @@ void EdddyCursor::SetCoords(IntVector3 coords)
         return;
 
     coords_ = coords;
-    node_->SetPosition(Vector3{ coords.x_ * BLOCK_WIDTH,
+
+    GetSubsystem<EffectMaster>()->TranslateTo(node_, Vector3{
+                                coords.x_ * BLOCK_WIDTH,
                                 coords.y_ * BLOCK_HEIGHT,
-                                coords.z_ * BLOCK_DEPTH });
+                                coords.z_ * BLOCK_DEPTH }, 0.13f);
     SendEvent(E_CURSORSTEP);
 }
 
@@ -143,7 +147,7 @@ void EdddyCursor::Rotate(bool clockWise)
     node_->Rotate(Quaternion(clockWise ? 90.0f :  -90.0f, axis), TS_WORLD);
 }
 
-void EdddyCursor::HandleMouseMove(Vector2 mousePos)
+void EdddyCursor::HandleMouseMove()
 {
     Ray mouseRay{ GetSubsystem<InputMaster>()->MouseRay() };
 
@@ -154,9 +158,9 @@ void EdddyCursor::HandleMouseMove(Vector2 mousePos)
         float closest{ M_INFINITY };
         PhysicsRaycastResult closestResult;
         for (PhysicsRaycastResult result: hitResults)
-            if ( (((axisLock_.count() == 2) ^ (axisLock_[1] ^ axisLock_[2])) && Abs(result.normal_.x_) > 0.5f)
-              || (((axisLock_.count() == 2) ^ (axisLock_[0] ^ axisLock_[2])) && Abs(result.normal_.y_) > 0.5f)
-              || (((axisLock_.count() == 2) ^ (axisLock_[0] ^ axisLock_[1])) && Abs(result.normal_.z_) > 0.5f)
+            if (((((axisLock_.count() == 2) != (axisLock_[1] != axisLock_[2])) && Abs(result.normal_.x_) > 0.5f)
+              || (((axisLock_.count() == 2) != (axisLock_[0] != axisLock_[2])) && Abs(result.normal_.y_) > 0.5f)
+              || (((axisLock_.count() == 2) != (axisLock_[0] != axisLock_[1])) && Abs(result.normal_.z_) > 0.5f))
               && result.distance_ < closest)
             {
                 closest = result.distance_;
