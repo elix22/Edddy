@@ -32,8 +32,8 @@ SOURCES += \
     freeblock.cpp \
     block.cpp \
     edddycursor.cpp \
-    Urho3D/Source/Urho3D/Math/intvector3.cpp \
-    editmaster.cpp
+    editmaster.cpp \
+    intvector3.cpp
 
 HEADERS += \
     luckey.h \
