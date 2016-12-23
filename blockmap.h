@@ -31,9 +31,9 @@
 #define BLOCK_DEPTH  3.0f
 #define BLOCK_SIZE Vector3(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_DEPTH)
 
-#define MAP_WIDTH  10
-#define MAP_HEIGHT 10
-#define MAP_DEPTH  10
+#define MAP_WIDTH  23
+#define MAP_HEIGHT 23
+#define MAP_DEPTH  23
 
 class Block;
 class GridBlock;
@@ -48,11 +48,12 @@ public:
     static void RegisterObject(Context* context);
     virtual void OnNodeSet(Node* node);
 
+    Vector3 GetCenter();
     BlockInstance* GetBlockInstance(IntVector3 coords);
-    bool SetBlock(IntVector3 coords, Block* block);
+    void SetBlock(IntVector3 coords, Quaternion rotation, Block* block);
 private:
     HashMap<int,  Sheet> map_;
-//    Vector< Pair<Vector3, FreeBlock> > freeBlocks_;
+    //    Vector< Pair<Vector3, FreeBlock> > freeBlocks_;
 };
 
 #endif // GRID_H

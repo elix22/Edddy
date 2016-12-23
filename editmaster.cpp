@@ -55,28 +55,35 @@ void EditMaster::LoadBlocks()
 
 }
 
-bool EditMaster::SetCurrentBlock(unsigned index)
+void EditMaster::SetCurrentBlock(unsigned index)
 {
     if (index < blocks_.Size()){
 
         currentBlockIndex_ = index;
         currentBlock_ = blocks_[currentBlockIndex_];
 
-        SendEvent(E_CURRENTBLOCKCHANGE);
-        return true;
-    } else return false;
+        VariantMap eventData{};
+        eventData[CurrentBlockChange::P_BLOCK] = currentBlock_;
+
+        SendEvent(E_CURRENTBLOCKCHANGE, eventData);
+    }
 }
-bool EditMaster::SetCurrentBlock(Block* block)
+void EditMaster::SetCurrentBlock(Block* block)
 {
-    if (blocks_.Contains(block)){
+    if (block == nullptr) {
+
+        VariantMap eventData{};
+        eventData[CurrentBlockChange::P_BLOCK] = currentBlock_ = nullptr;
+
+        SendEvent(E_CURRENTBLOCKCHANGE, eventData);
+
+    } else if (blocks_.Contains(block)){
         for (unsigned b{0}; b < blocks_.Size(); ++b){
             if (blocks_[b] == block){
-                SetCurrentBlock(b);
-                return true;
+                SetCurrentBlock(b);;
             }
         }
     }
-    return false;
 }
 
 void EditMaster::NextBlock()
@@ -107,23 +114,24 @@ Block* EditMaster::GetCurrentBlock()
     return currentBlock_;
 }
 
-bool EditMaster::PickBlock()
+void EditMaster::PickBlock()
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
     BlockInstance* blockInstance{ MC->GetMap()->GetBlockInstance(cursor->GetCoords()) };
     if (blockInstance && blockInstance->GetBlock()){
-        cursor->GetNode()->SetRotation(blockInstance->GetRotation());
-        return SetCurrentBlock(blockInstance->GetBlock());
+        cursor->SetRotation(blockInstance->GetRotation());
+        SetCurrentBlock(blockInstance->GetBlock());
+    } else {
+        SetCurrentBlock(nullptr);
     }
-    return false;
 }
 
-bool EditMaster::PutBlock(IntVector3 coords, Block* block)
+void EditMaster::PutBlock(IntVector3 coords, Quaternion rotation, Block* block)
 {
-    return MC->GetMap()->SetBlock(coords, block);
+    MC->GetMap()->SetBlock(coords, rotation, block);
 }
-bool EditMaster::PutBlock()
+void EditMaster::PutBlock()
 {
-
-    return PutBlock(GetSubsystem<InputMaster>()->GetCursor()->GetCoords(), currentBlock_);
+    EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
+    PutBlock(cursor->GetCoords(), cursor->GetTargetRotation(), currentBlock_);
 }

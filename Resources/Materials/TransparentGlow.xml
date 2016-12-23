@@ -2,5 +2,6 @@
     <technique name="Techniques/NoTextureAlpha.xml" />
     <parameter name="MatDiffColor" value="0 0.8 1 0.23" />
     <parameter name="MatEmissiveColor" value="0 0 0.5 1" />
-		<cull value="none" />
+		<cull value="none"/>
+<bias value="-0.1"/>
 </material>

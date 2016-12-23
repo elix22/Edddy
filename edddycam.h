@@ -26,6 +26,9 @@
 
 using namespace Urho3D;
 
+#define PITCH_MAX 85.0f
+#define PITCH_MIN -85.0f
+
 class EdddyCam : public LogicComponent
 {
     URHO3D_OBJECT(EdddyCam, LogicComponent);
@@ -36,14 +39,19 @@ public:
     virtual void Update(float timeStep);
 
     Quaternion GetRotation() const { return node_->GetRotation(); }
+    float GetYaw() const { return GetRotation().EulerAngles().y_; }
+    float GetPitch() const { return GetRotation().EulerAngles().x_; }
+    Vector3 GetPosition() const { return node_->GetPosition(); }
     float GetFov() const { return camera_->GetFov(); }
     Ray GetScreenRay(float x, float y) const { return camera_->GetScreenRay(x, y); }
+    void Pan(Vector2 pan);
 private:
     SharedPtr<Camera> camera_;
     SharedPtr<Viewport> viewport_;
     SharedPtr<RenderPath> effectRenderPath_;
 
     void SetupViewport();
+    void ClampPitch();
 };
 
 #endif // EDDDYCAM_H

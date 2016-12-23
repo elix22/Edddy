@@ -44,10 +44,14 @@ public:
     void MoveTo(Vector3 position);
 
     void Rotate(bool clockWise);
+    void SetRotation(Quaternion rot);
+    Quaternion GetTargetRotation() const { return targetRotation_; }
 
     void HandleMouseMove();
 private:
     IntVector3 coords_;
+    Quaternion targetRotation_;
+
     Node* boxNode_;
     StaticModel* boxModel_;
     Node* blockNode_;

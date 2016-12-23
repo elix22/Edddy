@@ -33,6 +33,7 @@ void EdddyCursor::RegisterObject(Context *context)
 
 EdddyCursor::EdddyCursor(Context* context) : LogicComponent(context),
     coords_{},
+    targetRotation_{},
     axisLock_{},
     previousAxisLock_{}
 {
@@ -163,7 +164,14 @@ void EdddyCursor::MoveTo(Vector3 position)
 void EdddyCursor::Rotate(bool clockWise)
 {
     Vector3 axis{ Vector3::UP };
-    node_->Rotate(Quaternion(clockWise ? 90.0f :  -90.0f, axis), TS_WORLD);
+    targetRotation_ = Quaternion(clockWise ? 90.0f :  -90.0f, axis) * targetRotation_;
+    GetSubsystem<EffectMaster>()->RotateTo(node_, targetRotation_, 0.1f);
+}
+void EdddyCursor::SetRotation(Quaternion rot)
+{
+    node_->RemoveAttributeAnimation("Position");
+    node_->SetRotation(rot);
+    targetRotation_ = rot;
 }
 
 void EdddyCursor::HandleMouseMove()
@@ -175,7 +183,7 @@ void EdddyCursor::HandleMouseMove()
     if (GetSubsystem<CastMaster>()->PhysicsRayCast(hitResults, mouseRay, M_LARGE_VALUE, M_MAX_UNSIGNED)){
 
         float closest{ M_INFINITY };
-        PhysicsRaycastResult closestResult;
+        PhysicsRaycastResult closestResult{};
         for (PhysicsRaycastResult result: hitResults)
             if (((((axisLock_.count() == 2) != (axisLock_[1] != axisLock_[2])) && Abs(result.normal_.x_) > 0.5f)
               || (((axisLock_.count() == 2) != (axisLock_[0] != axisLock_[2])) && Abs(result.normal_.y_) > 0.5f)
@@ -185,20 +193,29 @@ void EdddyCursor::HandleMouseMove()
                 closest = result.distance_;
                 closestResult = result;
             }
-        MoveTo(closestResult.position_);
+        if (closestResult.body_)
+            MoveTo(closestResult.position_);
     }
 }
 
 void EdddyCursor::UpdateModel(StringHash eventType, VariantMap& eventData)
-{ (void)eventType; (void)eventData;
-    Block* currentBlock{ GetSubsystem<EditMaster>()->GetCurrentBlock() };
-    Model* model{ currentBlock->GetModel() };
-    if (model)    {
-        blockModel_->SetModel(model);
-        blockModel_->SetMaterial(boxModel_->GetMaterial());
-        if (boxNode_->IsEnabled())
-            boxNode_->SetEnabled(false);
+{ (void)eventType;
+
+    Block* currentBlock{ static_cast<Block*>(eventData[CurrentBlockChange::P_BLOCK].GetPtr()) };
+
+    if (currentBlock) {
+
+        Model* model{ currentBlock->GetModel() };
+        if (model) {
+
+            blockModel_->SetModel(model);
+            blockModel_->SetMaterial(boxModel_->GetMaterial());
+            if (boxNode_->IsEnabled())
+                boxNode_->SetEnabled(false);
+        }
+
     } else {
+
         blockModel_->SetModel(nullptr);
         if (!boxNode_->IsEnabled())
             boxNode_->SetEnabled(true);

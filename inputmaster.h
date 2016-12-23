@@ -82,7 +82,8 @@ private:
 
     void HandleActions(const InputActions &actions, float timeStep);
     IntVector3 GetMoveFromActions(const InputActions& actions);
-    void CorrectForCameraYaw(Vector3& vec3);
+    IntVector3 CorrectForCameraYaw(IntVector3 intVec3);
+    void SyncMousePosition();
 };
 
 #endif // INPUTMASTER_H

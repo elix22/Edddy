@@ -17,6 +17,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "mastercontrol.h"
 #include "inputmaster.h"
 #include "editmaster.h"
 #include "castmaster.h"
@@ -62,11 +63,18 @@ InputMaster::InputMaster(Context* context) : Object(context),
     SubscribeToEvent(E_CURSORSTEP, URHO3D_HANDLER(InputMaster, HandleCursorStep));
 
     INPUT->SetMouseVisible(true);
+    INPUT->SetMouseMode(MM_ABSOLUTE);
+    SyncMousePosition();
 }
 void InputMaster::HandleCursorStep(StringHash eventType, VariantMap &eventData)
 { (void)eventType; (void)eventData;
 
     actionTime_[ACTION_CONFIRM] = ACTION_INTERVAL;
+}
+//Fixes drawing tablet issues
+void InputMaster::SyncMousePosition()
+{
+    INPUT->SetMousePosition( IntVector2( mousePos_.x_ * GRAPHICS->GetWidth(), mousePos_.y_ * GRAPHICS->GetHeight()));
 }
 
 void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
@@ -187,9 +195,7 @@ IntVector3 InputMaster::GetMoveFromActions(const InputActions& actions)
                   + IntVector3::UP      * (CheckActionable(ACTION_UP, actions) - CheckActionable(ACTION_DOWN, actions))
                   + IntVector3::FORWARD * (CheckActionable(ACTION_FORWARD, actions) - CheckActionable(ACTION_BACK, actions))};
 
-//    CorrectForCameraYaw(move);
-
-    return move;
+    return CorrectForCameraYaw(move);
 }
 
 bool InputMaster::CheckActionable(InputAction action, const InputActions& inputActions, bool reset)
@@ -205,7 +211,7 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
     int key{eventData[KeyDown::P_KEY].GetInt()};
-    Log::Write(1, "Key pressed: " + String(key));
+//    Log::Write(1, "Key pressed: " + String(key));
 
     pressedKeys_.Insert(key);
 
@@ -213,16 +219,16 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
     case KEY_ESCAPE:{
         MC->Exit();
     } break;
-    case KEY_9:{
+    /*case KEY_9:{
         Image screenshot(context_);
-        Graphics* graphics = GetSubsystem<Graphics>();
+        Graphics* graphics{ GetSubsystem<Graphics>() };
         graphics->TakeScreenShot(screenshot);
         //Here we save in the Data folder with date and time appended
         String fileName = GetSubsystem<FileSystem>()->GetProgramDir() + "Screenshots/Screenshot_" +
                 Time::GetTimeStamp().Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_')+".png";
         //Log::Write(1, fileName);
         screenshot.SavePNG(fileName);
-    } break;
+    } break;*/
     case KEY_Q:{
         if (INPUT->GetKeyDown(KEY_LCTRL) || INPUT->GetKeyDown(KEY_RCTRL))
             MC->Exit();
@@ -266,27 +272,50 @@ void InputMaster::HandleJoystickAxisMove(StringHash eventType, VariantMap& event
     }
 }
 
-void InputMaster::CorrectForCameraYaw(Vector3& vec3)
+IntVector3 InputMaster::CorrectForCameraYaw(IntVector3 intVec3)
 {
-    Vector3 camRot{MC->GetCamera()->GetRotation().EulerAngles()};
-    vec3 = Quaternion(camRot.y_, Vector3::UP) * vec3;
+    float quadrant{0.0f};
+    for (float angle: {90.0f, 180.0f, 270.0f}){
+
+        if (LucKey::Delta(MC->GetCamera()->GetYaw(), angle, true) <
+            LucKey::Delta(MC->GetCamera()->GetYaw(), quadrant, true))
+        {
+            quadrant = angle;
+        }
+
+    }
+
+    Vector3 vec3{ static_cast<float>(intVec3.x_),
+                  static_cast<float>(intVec3.y_),
+                  static_cast<float>(intVec3.z_)
+                };
+
+    vec3 = Quaternion(quadrant, Vector3::BACK) * vec3;
+
+    intVec3 = IntVector3( static_cast<int>(Round(vec3.x_)),
+                          static_cast<int>(Round(vec3.y_)),
+                          static_cast<int>(Round(vec3.z_))
+                        );
+
+    return intVec3;
 }
 
 void InputMaster::HandleMouseMove(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
 
-    Vector2 dPos{ static_cast<float>(eventData[MouseMove::P_DX].GetInt()),
-                  static_cast<float>(eventData[MouseMove::P_DY].GetInt()) };
-    mousePos_ += Vector2( dPos.x_ / GRAPHICS->GetWidth(),
-                          dPos.y_ / GRAPHICS->GetHeight());
+    Vector2 dPos{ static_cast<float>(eventData[MouseMove::P_DX].GetInt()) / GRAPHICS->GetWidth(),
+                  static_cast<float>(eventData[MouseMove::P_DY].GetInt()) / GRAPHICS->GetHeight()};
+    mousePos_ += dPos;
 
-    Vector2 mousePos{ static_cast<float>(INPUT->GetMousePosition().x_ / GRAPHICS->GetWidth()),
-                      static_cast<float>(INPUT->GetMousePosition().y_ / GRAPHICS->GetHeight()) };
+    mousePos_.x_ = Clamp(mousePos_.x_, 0.0f, 1.0f);
+    mousePos_.y_ = Clamp(mousePos_.y_, 0.0f, 1.0f);
 
+    SyncMousePosition();
 
-    cursor_->HandleMouseMove();
-//    cursor_->HandleMouseMove(mousePos_);
-    //    GetSubsystem<CastMaster>()->CursorRaycast(MouseRay());
+    if (INPUT->GetMouseButtonDown(2))
+        MC->GetCamera()->Pan(Vector2(dPos.x_, dPos.y_));
+    else
+        cursor_->HandleMouseMove();
 }
 
 void InputMaster::HandleMouseButtonDown(StringHash eventType, VariantMap& eventData)

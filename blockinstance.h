@@ -30,7 +30,7 @@ class BlockInstance : public LogicComponent
 public:
     BlockInstance(Context* context);
     virtual void OnNodeSet(Node* node);
-    bool SetBlock(Block* block, Quaternion rotation);
+    void SetBlock(Block* block, Quaternion rotation);
     Block* GetBlock() const { return block_; }
     Quaternion GetRotation() const { return rotation_; }
 protected:

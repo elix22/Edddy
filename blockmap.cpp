@@ -18,6 +18,7 @@
 */
 
 #include "inputmaster.h"
+#include "resourcemaster.h"
 #include "edddycursor.h"
 #include "gridblock.h"
 #include "blockmap.h"
@@ -53,6 +54,22 @@ void BlockMap::OnNodeSet(Node *node)
             }
         map_[y] = sheet;
     }
+
+    for (int c{0}; c < 8; ++c) {
+
+        Node* cornerNode{ node_->CreateChild("CORNER") };
+        cornerNode->SetPosition(-0.5f * BLOCK_SIZE);
+        cornerNode->SetScale(13.0f * Min(Min(BLOCK_WIDTH, BLOCK_HEIGHT), BLOCK_DEPTH));
+        cornerNode->RotateAround(GetCenter() - 0.5f * BLOCK_SIZE,
+                                 Quaternion(
+                                    c/4 * 180,
+                                    (c % 4) * 90.0f,
+                                    0.0f), TS_PARENT);
+
+        StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
+        cornerModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
+        cornerModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerInactive"));
+    }
 }
 
 BlockInstance* BlockMap::GetBlockInstance(IntVector3 coords)
@@ -69,7 +86,7 @@ BlockInstance* BlockMap::GetBlockInstance(IntVector3 coords)
     return blockInstance;
 }
 
-bool BlockMap::SetBlock(IntVector3 coords, Block* block)
+void BlockMap::SetBlock(IntVector3 coords, Quaternion rotation, Block* block)
 {
 
     Sheet sheet{};
@@ -77,9 +94,16 @@ bool BlockMap::SetBlock(IntVector3 coords, Block* block)
 
         GridBlock* gridBlock{ nullptr };
         if (sheet.TryGetValue(IntVector2(coords.x_, coords.z_), gridBlock))
-            return gridBlock->SetBlock(block, GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetRotation());
+            gridBlock->SetBlock(block, rotation);
     }
-    return false;
+}
+
+Vector3 BlockMap::GetCenter()
+{
+    return node_->GetPosition() + Vector3(
+                0.5f * BLOCK_WIDTH * MAP_WIDTH,
+                0.5f * BLOCK_HEIGHT * MAP_HEIGHT,
+                0.5f * BLOCK_DEPTH * MAP_DEPTH);
 }
 
 

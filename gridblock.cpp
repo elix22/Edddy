@@ -25,6 +25,10 @@
 #include "edddycam.h"
 #include "edddycursor.h"
 
+StaticModelGroup* GridBlock::activeCenterGroup_{};
+StaticModelGroup* GridBlock::inactiveCenterGroup_{};
+StaticModelGroup* GridBlock::cornerGroup_{};
+
 void GridBlock::RegisterObject(Context *context)
 {
     context->RegisterFactory<GridBlock>();
@@ -34,16 +38,33 @@ GridBlock::GridBlock(Context* context) : BlockInstance(context)
 }
 void GridBlock::OnNodeSet(Node *node)
 {
+    if (!activeCenterGroup_) {
+        activeCenterGroup_ = MC->GetScene()->CreateChild("ActiveCenterGroup")->CreateComponent<StaticModelGroup>();
+        activeCenterGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
+        activeCenterGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CenterActive"));
+    }
+    if (!inactiveCenterGroup_) {
+        inactiveCenterGroup_ = MC->GetScene()->CreateChild("InactiveCenterGroup")->CreateComponent<StaticModelGroup>();
+        inactiveCenterGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
+        inactiveCenterGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CenterInactive"));
+    }
+    if (!cornerGroup_) {
+        cornerGroup_ = MC->GetScene()->CreateChild("CornerGroup")->CreateComponent<StaticModelGroup>();
+        cornerGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
+        cornerGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerInactive"));
+    }
+
 
     BlockInstance::OnNodeSet(node);
 
     gridNode_ = node_->CreateChild("GRID");
 
     centerNode_ = gridNode_->CreateChild("CENTER");
-    centerModel_ = centerNode_->CreateComponent<StaticModel>();
-    centerModel_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
+//    centerModel_ = centerNode_->CreateComponent<StaticModel>();
+//    centerModel_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
+//    inactiveCenterGroup_->AddInstanceNode(centerNode_);
 
-    for (int c{0}; c < 8; ++c) {
+  /*  for (int c{0}; c < 8; ++c) {
 
         Node* cornerNode{ gridNode_->CreateChild("CORNER") };
         cornerNode->SetPosition(Vector3(
@@ -54,14 +75,15 @@ void GridBlock::OnNodeSet(Node *node)
                                  Quaternion(
                                     c/4 * 180,
                                     (c % 4) * 90.0f,
-                                    0.0f), TS_PARENT);
+                                    0.0f), TS_PARENT);*/
 
-        StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
-        cornerModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
-        cornerModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerInactive"));
+//        StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
+//        cornerModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
+//        cornerModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerInactive"));
 
-        cornerNodes_.Push(cornerNode);
-    }
+//        cornerNodes_.Push(cornerNode);
+//        cornerGroup_->AddInstanceNode(cornerNode);
+//    }
 }
 void GridBlock::DelayedStart()
 {
@@ -81,6 +103,10 @@ void GridBlock::SetCoords(IntVector3 coords)
 
     coords_ = coords;
 
+    UpdatePosition();
+}
+void GridBlock::UpdatePosition()
+{
     node_->SetPosition(Vector3(
                            coords_.x_ * BLOCK_WIDTH,
                            coords_.y_ * BLOCK_HEIGHT,
@@ -97,21 +123,32 @@ void GridBlock::HandleCursorStep(StringHash eventType, VariantMap& eventData)
 { (void)eventType; (void)eventData;
 
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
-    float distanceToCursor{ Distance(node_->GetPosition() / BLOCK_SIZE,
-                                     cursor->GetNode()->GetPosition() / BLOCK_SIZE) };
+    Vector3 cursorCoords{ static_cast<float>(cursor->GetCoords().x_),
+                          static_cast<float>(cursor->GetCoords().y_),
+                          static_cast<float>(cursor->GetCoords().z_) };
+
+    float distanceToCursor{ Distance(node_->GetPosition() / BLOCK_SIZE, cursorCoords) };
+
     float centerScale{1.0f - Clamp(distanceToCursor * 0.25f - 0.5f, 0.0f, 0.666f)};
+
     centerNode_->SetScale(centerScale);
-    Material* centerMaterial{ GetSubsystem<ResourceMaster>()->GetMaterial( WithinLock() ?
-                              "CenterActive" : "CenterInactive") };
 
-    if (centerMaterial != centerModel_->GetMaterial())
-        centerModel_->SetMaterial(centerMaterial);
+    if (WithinLock()){
 
-    float cornerScale{1.0f - Clamp(distanceToCursor * 0.1f - 0.1f, 0.0f, 0.666f)};
+        activeCenterGroup_->AddInstanceNode(centerNode_);
+        //            inactiveCenterGroup_->RemoveInstanceNode(centerNode_);
+
+    } else {
+
+        //            inactiveCenterGroup_->AddInstanceNode(centerNode_);
+        activeCenterGroup_->RemoveInstanceNode(centerNode_);
+    }
+
+   /* float cornerScale{1.0f - Clamp(distanceToCursor * 0.1f - 0.1f, 0.0f, 0.666f)};
     if (distanceToCursor < 0.1f) cornerScale = 0.0f;
     for (Node* cornerNode : cornerNodes_) {
         cornerNode->SetScale(cornerScale);
-    }
+    }*/
 }
 
 bool GridBlock::WithinLock()

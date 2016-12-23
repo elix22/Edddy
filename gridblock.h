@@ -40,6 +40,10 @@ public:
     virtual void DelayedStart();
     bool WithinLock();
 private:
+    static StaticModelGroup* activeCenterGroup_;
+    static StaticModelGroup* inactiveCenterGroup_;
+    static StaticModelGroup* cornerGroup_;
+
     IntVector3 coords_;
 
     Node* gridNode_;
@@ -49,6 +53,7 @@ private:
     //Called by BlockMap
     void Init(IntVector3 coords);
     void SetCoords(IntVector3 coords);
+    void UpdatePosition();
 };
 
 #endif // GRIDBLOCK_H

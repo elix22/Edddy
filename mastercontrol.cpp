@@ -47,20 +47,20 @@ MasterControl::MasterControl(Context *context):
 
 void MasterControl::Setup()
 {
-    engineParameters_["WindowTitle"] = "Edddy";
-    engineParameters_["LogName"] = GetSubsystem<FileSystem>()->GetAppPreferencesDir("urho3d", "logs")+"edddy.log";
-    engineParameters_["ResourcePaths"] = "Data;CoreData;Resources;";
-    engineParameters_["WindowIcon"] = "icon.png";
+    engineParameters_[EP_WINDOW_TITLE] = "Edddy";
+    engineParameters_[EP_WINDOW_ICON] = "icon.png";
+    engineParameters_[EP_LOG_NAME] = GetSubsystem<FileSystem>()->GetAppPreferencesDir("urho3d", "logs")+"edddy.log";
+    engineParameters_[EP_RESOURCE_PATHS] = "Data;CoreData;Resources;";
 
-//    engineParameters_["Fullscreen"] = false;
-//    engineParameters_["WindowWidth"] = 1280;
-//    engineParameters_["WindowHeight"] = 1024;
+//    engineParameters_[EP_FULL_SCREEN] = false;
+//    engineParameters_[EP_WINDOW_HEIGHT] = 1280;
+//    engineParameters_[EP_WINDOW_WIDTH] = 1024;
 }
 
 
 void MasterControl::Start()
 {
-//    ENGINE->SetMaxFps(80);
+    ENGINE->SetMaxFps(80);
     SetRandomSeed(TIME->GetSystemTime());
     CACHE->SetAutoReloadResources(true);
     LoadBlocks();
@@ -138,11 +138,11 @@ void MasterControl::SubscribeToEvents()
 
 void MasterControl::CreateConsoleAndDebugHud()
 {
-    Console* console{engine_->CreateConsole()};
+    Console* console{ engine_->CreateConsole() };
     console->SetDefaultStyle(defaultStyle_);
     console->GetBackground()->SetOpacity(0.8f);
 
-    DebugHud* debugHud{engine_->CreateDebugHud()};
+    DebugHud* debugHud{ engine_->CreateDebugHud() };
     debugHud->SetDefaultStyle(defaultStyle_);
 }
 
@@ -164,8 +164,8 @@ void MasterControl::CreateScene()
     scene_->CreateComponent<Octree>();
     scene_->CreateComponent<DebugRenderer>();
 
-    scene_->CreateComponent<PhysicsWorld>();
-    scene_->GetComponent<PhysicsWorld>()->SetGravity(Vector3::DOWN * 42.0f);
+//    scene_->CreateComponent<PhysicsWorld>();
+//    scene_->GetComponent<PhysicsWorld>()->SetGravity(Vector3::DOWN * 42.0f);
 
     //Add sky
 //    Node* skyNode{scene_->CreateChild("Sky")};
@@ -175,10 +175,10 @@ void MasterControl::CreateScene()
 //    skybox->GetMaterial()->SetShaderParameter("MatDiffColor", Color(0.5f, 0.6f, 1.0f));
 
     //Create a directional light to the world. Enable cascaded shadows on it
-    Node* lightNode{scene_->CreateChild("DirectionalLight")};
+    Node* lightNode{ scene_->CreateChild("DirectionalLight") };
     lightNode->SetPosition(Vector3(-5.0f, 10.0f, -7.0f));
     lightNode->LookAt(Vector3(0.0f, 0.0f, 0.0f));
-    Light* light{lightNode->CreateComponent<Light>()};
+    Light* light{ lightNode->CreateComponent<Light>() };
     light->SetLightType(LIGHT_DIRECTIONAL);
     light->SetBrightness(0.9f);
     light->SetShadowIntensity(0.3f);
@@ -188,7 +188,7 @@ void MasterControl::CreateScene()
     light->SetShadowCascade(CascadeParameters(7.0f, 23.0f, 42.0f, 500.0f, 0.8f));
 
     //Create camera
-    Node* camNode{scene_->CreateChild("Camera")};
+    Node* camNode{ scene_->CreateChild("Camera") };
     camera_ = camNode->CreateComponent<EdddyCam>();
 
     //Create a map
@@ -215,14 +215,10 @@ void MasterControl::HandlePostRenderUpdate(StringHash eventType, VariantMap& eve
     }
 }
 
-
-
-
-
 float MasterControl::Sine(const float freq, const float min, const float max, const float shift)
 {
-    float phase{SinePhase(freq, shift)};
-    float add{0.5f * (min + max)};
+    float phase{ SinePhase(freq, shift) };
+    float add{ 0.5f * (min + max) };
     return LucKey::Sine(phase) * 0.5f * (max - min) + add;
 }
 float MasterControl::Cosine(const float freq, const float min, const float max, const float shift)

@@ -41,9 +41,10 @@ void BlockInstance::OnNodeSet(Node *node)
 
 }
 
-bool BlockInstance::SetBlock(Block* block, Quaternion rotation)
+void BlockInstance::SetBlock(Block* block, Quaternion rotation)
 {
     if (block){
+
         block_ = block;
         blockModel_->SetModel(block->GetModel());
         blockMaterial_ = block->GetMaterial();
@@ -52,7 +53,10 @@ bool BlockInstance::SetBlock(Block* block, Quaternion rotation)
         rotation_ = rotation;
         blockNode_->SetRotation(rotation_);
 
-        return true;
-    } else return false;
+    } else {
+
+        block_ = nullptr;
+        blockModel_->SetModel(nullptr);
+    }
 }
 
