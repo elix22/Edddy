@@ -17,7 +17,6 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "edddycursor.h"
 #include "edddycam.h"
 #include "resourcemaster.h"
 #include "inputmaster.h"
@@ -25,6 +24,8 @@
 #include "castmaster.h"
 #include "editmaster.h"
 #include "blockmap.h"
+
+#include "edddycursor.h"
 
 void EdddyCursor::RegisterObject(Context *context)
 {
@@ -66,19 +67,55 @@ void EdddyCursor::OnNodeSet(Node *node)
     boxModel_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("TransparentGlow"));
 
     UpdateSizeAndOffset();
-    SetCoords(IntVector3(MAP_WIDTH / 2, 0, MAP_DEPTH / 2));
+//    SetCoords(IntVector3(MAP_WIDTH / 2, 0, MAP_DEPTH / 2));
+
+    SubscribeToEvent(E_CURRENTBLOCKCHANGE, URHO3D_HANDLER(EdddyCursor, UpdateModel));
+    SubscribeToEvent(E_CURRENTMAPCHANGE, URHO3D_HANDLER(EdddyCursor, HandleMapChange));
 
 }
 void EdddyCursor::DelayedStart()
 {
-    SendEvent(E_CURSORSTEP);
-    SubscribeToEvent(E_CURRENTBLOCKCHANGE, URHO3D_HANDLER(EdddyCursor, UpdateModel));
+    MoveTo(GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetCenter());
+//    SendEvent(E_CURSORSTEP);
+}
+void EdddyCursor::HandleMapChange(StringHash eventType, VariantMap& eventData)
+{ (void)eventType;
+
+    BlockMap* blockMap{ static_cast<BlockMap*>(eventData[CurrentMapChange::P_MAP].GetPtr()) };
+
+    UpdateSizeAndOffset();
+    MoveTo(blockMap->GetCenter());
+}
+void EdddyCursor::UpdateModel(StringHash eventType, VariantMap& eventData)
+{ (void)eventType;
+
+    Block* currentBlock{ static_cast<Block*>(eventData[CurrentBlockChange::P_BLOCK].GetPtr()) };
+
+    if (currentBlock) {
+
+        Model* model{ currentBlock->GetModel() };
+        if (model) {
+
+            blockModel_->SetModel(model);
+            blockModel_->SetMaterial(boxModel_->GetMaterial());
+            if (boxNode_->IsEnabled())
+                boxNode_->SetEnabled(false);
+        }
+
+    } else {
+
+        blockModel_->SetModel(nullptr);
+        if (!boxNode_->IsEnabled())
+            boxNode_->SetEnabled(true);
+    }
 }
 
 void EdddyCursor::UpdateSizeAndOffset()
 {
-    boxNode_->SetScale(Vector3(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_DEPTH));
-    blockNode_->SetPosition(Vector3::DOWN * BLOCK_HEIGHT * 0.5f);
+    Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
+
+    boxNode_->SetScale(Vector3(blockSize.x_, blockSize.y_, blockSize.z_));
+    blockNode_->SetPosition(Vector3::DOWN * blockSize.y_ * 0.5f);
 }
 
 void EdddyCursor::SetAxisLock(std::bitset<3> lock)
@@ -95,6 +132,8 @@ void EdddyCursor::SetAxisLock(std::bitset<3> lock)
 
 void EdddyCursor::Step(IntVector3 step)
 {
+    IntVector3 mapSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetMapSize() };
+
     if (axisLock_.count() == 2){
         switch (axisLock_.to_ulong()) {
         case 5: step = IntVector3(step.x_, step.z_, step.y_);
@@ -120,9 +159,9 @@ void EdddyCursor::Step(IntVector3 step)
     if (resultingCoords.x_ < 0
      || resultingCoords.y_ < 0
      || resultingCoords.z_ < 0
-     || resultingCoords.x_ >= MAP_WIDTH
-     || resultingCoords.y_ >= MAP_HEIGHT
-     || resultingCoords.z_ >= MAP_DEPTH)
+     || resultingCoords.x_ >= mapSize.x_
+     || resultingCoords.y_ >= mapSize.y_
+     || resultingCoords.z_ >= mapSize.z_)
     {
         return;
     }
@@ -132,27 +171,32 @@ void EdddyCursor::Step(IntVector3 step)
 
 void EdddyCursor::SetCoords(IntVector3 coords)
 {
-    if ( (coords.x_ < 0 || coords.x_ >= MAP_WIDTH)
-      || (coords.y_ < 0 || coords.y_ >= MAP_HEIGHT)
-      || (coords.z_ < 0 || coords.z_ >= MAP_DEPTH)
+    IntVector3 mapSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetMapSize() };
+    Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
+
+    if ( (coords.x_ < 0 || coords.x_ >= mapSize.x_)
+      || (coords.y_ < 0 || coords.y_ >= mapSize.y_)
+      || (coords.z_ < 0 || coords.z_ >= mapSize.z_)
       ||  coords == coords_)
         return;
 
     coords_ = coords;
 
     GetSubsystem<EffectMaster>()->TranslateTo(node_, Vector3{
-                                coords.x_ * BLOCK_WIDTH,
-                                coords.y_ * BLOCK_HEIGHT,
-                                coords.z_ * BLOCK_DEPTH }, 0.13f);
+                                coords.x_ * blockSize.x_,
+                                coords.y_ * blockSize.y_,
+                                coords.z_ * blockSize.z_}, 0.13f);
     SendEvent(E_CURSORSTEP);
 }
 
 void EdddyCursor::MoveTo(Vector3 position)
 {
+    Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
+
     //if (grid)
-    IntVector3 coords{ static_cast<int>(round(position.x_ / BLOCK_WIDTH)),
-                       static_cast<int>(round(position.y_ / BLOCK_HEIGHT)),
-                       static_cast<int>(round(position.z_ / BLOCK_DEPTH)) };
+    IntVector3 coords{ static_cast<int>(round(position.x_ / blockSize.x_)),
+                       static_cast<int>(round(position.y_ / blockSize.y_)),
+                       static_cast<int>(round(position.z_ / blockSize.z_)) };
 
     SetCoords(IntVector3(
             axisLock_[0] ? coords.x_ : coords_.x_,
@@ -169,7 +213,7 @@ void EdddyCursor::Rotate(bool clockWise)
 }
 void EdddyCursor::SetRotation(Quaternion rot)
 {
-    node_->RemoveAttributeAnimation("Position");
+//    node_->RemoveAttributeAnimation("Position");
     node_->SetRotation(rot);
     targetRotation_ = rot;
 }
@@ -195,29 +239,5 @@ void EdddyCursor::HandleMouseMove()
             }
         if (closestResult.body_)
             MoveTo(closestResult.position_);
-    }
-}
-
-void EdddyCursor::UpdateModel(StringHash eventType, VariantMap& eventData)
-{ (void)eventType;
-
-    Block* currentBlock{ static_cast<Block*>(eventData[CurrentBlockChange::P_BLOCK].GetPtr()) };
-
-    if (currentBlock) {
-
-        Model* model{ currentBlock->GetModel() };
-        if (model) {
-
-            blockModel_->SetModel(model);
-            blockModel_->SetMaterial(boxModel_->GetMaterial());
-            if (boxNode_->IsEnabled())
-                boxNode_->SetEnabled(false);
-        }
-
-    } else {
-
-        blockModel_->SetModel(nullptr);
-        if (!boxNode_->IsEnabled())
-            boxNode_->SetEnabled(true);
     }
 }

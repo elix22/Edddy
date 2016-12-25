@@ -22,6 +22,7 @@
 
 
 BlockInstance::BlockInstance(Context* context) : LogicComponent(context),
+    blockMap_{ nullptr },
     block_{ nullptr }
 {
 
@@ -35,10 +36,9 @@ void BlockInstance::OnNodeSet(Node *node)
     node_->SetTags(tag);
 
     blockNode_ = node_->CreateChild("BLOCK");
-    blockNode_->SetPosition(Vector3::DOWN * BLOCK_HEIGHT * 0.5f);
 
     blockModel_ = blockNode_->CreateComponent<StaticModel>();
-
+    blockModel_->SetCastShadows(true);
 }
 
 void BlockInstance::SetBlock(Block* block, Quaternion rotation)

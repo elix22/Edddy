@@ -64,7 +64,6 @@ void MasterControl::Start()
     SetRandomSeed(TIME->GetSystemTime());
     CACHE->SetAutoReloadResources(true);
     LoadBlocks();
-    CACHE->GetResource<Model>("ToRampTopRight.mdl");
 
     context_->RegisterSubsystem(this);
     context_->RegisterSubsystem(new ResourceMaster(context_));
@@ -120,6 +119,7 @@ void MasterControl::LoadBlocks()
     CACHE->GetResource<Model>("Blocks/ToRampMiddleLeft.mdl");
     CACHE->GetResource<Model>("Blocks/ToRampMiddleRight.mdl");
     CACHE->GetResource<Model>("Blocks/ToRampTopLeft.mdl");
+    CACHE->GetResource<Model>("Blocks/ToRampTopRight.mdl");
 }
 void MasterControl::Stop()
 {
@@ -127,6 +127,8 @@ void MasterControl::Stop()
 }
 void MasterControl::Exit()
 {
+    GetSubsystem<EditMaster>()->SaveMap(GetSubsystem<EditMaster>()->GetCurrentBlockMap(), BLOCKMAP);
+
     engine_->Exit();
 }
 
@@ -192,15 +194,17 @@ void MasterControl::CreateScene()
     camera_ = camNode->CreateComponent<EdddyCam>();
 
     //Create a map
-    Node* mapNode{ scene_->CreateChild("Map") };
-    blockMap_ = mapNode->CreateComponent<BlockMap>();
+//    Node* mapNode{ scene_->CreateChild("Map") };
+//    blockMap_ = mapNode->CreateComponent<BlockMap>();
+    if (!GetSubsystem<EditMaster>()->LoadMap(BLOCKMAP))
+        GetSubsystem<EditMaster>()->NewMap();
 
     //Create the cursor
     Node* cursorNode{ scene_->CreateChild("Cursor") };
     EdddyCursor* cursor{ cursorNode->CreateComponent<EdddyCursor>() };
     GetSubsystem<InputMaster>()->SetCursor(cursor);
 
-    GetSubsystem<EditMaster>()->LoadBlocks();
+//    GetSubsystem<EditMaster>()->SaveBlockSet();
 }
 
 void MasterControl::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)

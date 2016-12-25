@@ -48,6 +48,7 @@ public:
     Quaternion GetTargetRotation() const { return targetRotation_; }
 
     void HandleMouseMove();
+    void HandleMapChange(StringHash eventType, VariantMap& eventData);
 private:
     IntVector3 coords_;
     Quaternion targetRotation_;

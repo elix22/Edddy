@@ -39,21 +39,23 @@ public:
     void HandleCursorStep(StringHash eventType, VariantMap& evenData);
     virtual void DelayedStart();
     bool WithinLock();
+    IntVector3 GetCoords() const { return coords_; }
 private:
     static StaticModelGroup* activeCenterGroup_;
     static StaticModelGroup* inactiveCenterGroup_;
-    static StaticModelGroup* cornerGroup_;
+    static StaticModelGroup* sideGroup_;
 
     IntVector3 coords_;
 
-    Node* gridNode_;
+    Node* sidesNode_;
     Node* centerNode_;
-    Vector<Node*> cornerNodes_;
+    Vector<Node*> sideNodes_;
     StaticModel* centerModel_;
     //Called by BlockMap
     void Init(IntVector3 coords);
     void SetCoords(IntVector3 coords);
     void UpdatePosition();
+    void CreateSideNodes();
 };
 
 #endif // GRIDBLOCK_H

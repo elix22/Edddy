@@ -17,8 +17,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef GRID_H
-#define GRID_H
+#ifndef BLOCKMAP_H
+#define BLOCKMAP_H
 
 #include <Urho3D/Urho3D.h>
 
@@ -31,10 +31,6 @@
 #define BLOCK_DEPTH  3.0f
 #define BLOCK_SIZE Vector3(BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_DEPTH)
 
-#define MAP_WIDTH  23
-#define MAP_HEIGHT 23
-#define MAP_DEPTH  23
-
 class Block;
 class GridBlock;
 
@@ -42,18 +38,44 @@ typedef HashMap<IntVector2, GridBlock*> Sheet;
 
 class BlockMap : public LogicComponent
 {
+    friend class EditMaster;
+
     URHO3D_OBJECT(BlockMap, LogicComponent);
 public:
     BlockMap(Context* context);
     static void RegisterObject(Context* context);
     virtual void OnNodeSet(Node* node);
 
+    IntVector3 GetMapSize() const { return mapSize_; }
+    int GetMapWidth()       const { return mapSize_.x_; }
+    int GetMapHeight()      const { return mapSize_.y_; }
+    int GetMapDepth()       const { return mapSize_.z_; }
+
+    Vector3 GetBlockSize() const { return blockSize_; }
+    int GetBlockWidth()    const { return blockSize_.x_; }
+    int GetBlockHeight()   const { return blockSize_.y_; }
+    int GetBlockDepth()    const { return blockSize_.z_; }
+
     Vector3 GetCenter();
     BlockInstance* GetBlockInstance(IntVector3 coords);
     void SetBlock(IntVector3 coords, Quaternion rotation, Block* block);
+    void LoadXML(const XMLElement &source);
+    void SaveXML(XMLElement &dest);
+    Vector<Block*> GetUsedBlocks();
+    Vector<BlockSet*> GetUsedBlockSets();
+    Vector<GridBlock*> GetOccupiedGridBlocks();
 private:
-    HashMap<int,  Sheet> map_;
-    //    Vector< Pair<Vector3, FreeBlock> > freeBlocks_;
+    HashMap<int, Sheet> map_;
+
+    IntVector3 mapSize_;
+    Vector3 blockSize_;
+
+    void SetMapSize(IntVector3 size);
+    void SetMapSize(int w, int h, int d);
+    void CreateCorners();
+    void Initialize();
+    void SetBlockSize(Vector3 size);
+    int GetBlockSetId(Block* block, HashMap<int, BlockSet*>& blockSetsById);
 };
 
-#endif // GRID_H
+#endif // BLOCKMAP_H

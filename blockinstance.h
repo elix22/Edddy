@@ -34,8 +34,9 @@ public:
     Block* GetBlock() const { return block_; }
     Quaternion GetRotation() const { return rotation_; }
 protected:
-    Block* block_;
+    BlockMap* blockMap_;
 
+    Block* block_;
     Node* blockNode_;
     Quaternion rotation_;
     StaticModel* blockModel_;

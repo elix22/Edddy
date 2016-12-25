@@ -21,6 +21,7 @@
 #include "edddycursor.h"
 #include "inputmaster.h"
 #include "blockmap.h"
+#include "editmaster.h"
 
 EdddyCam::EdddyCam(Context *context):
     LogicComponent(context)
@@ -38,9 +39,9 @@ void EdddyCam::OnNodeSet(Node *node)
     camera_->SetFarClip(1024.0f);
     camera_->SetFov(60.0f);
 
-    node_->SetPosition(Vector3(BLOCK_WIDTH  * MAP_WIDTH/2,
-                               BLOCK_HEIGHT * MAP_HEIGHT/2,
-                               -BLOCK_DEPTH));
+   /* node_->SetPosition(Vector3(BLOCK_WIDTH  * MAP_WIDTH / 2,
+                               BLOCK_HEIGHT * MAP_HEIGHT / 2,
+                               -BLOCK_DEPTH));*/
     node_->SetRotation(Quaternion(23.0f, 0.0f, 0.0f));
 
     Zone* zone{ node_->CreateComponent<Zone>() };
@@ -48,6 +49,7 @@ void EdddyCam::OnNodeSet(Node *node)
 
     SetupViewport();
 
+    SubscribeToEvent(E_CURRENTMAPCHANGE, URHO3D_HANDLER(EdddyCam, HandleMapChange));
 }
 void EdddyCam::SetupViewport()
 {
@@ -65,6 +67,14 @@ void EdddyCam::SetupViewport()
 
     viewport->SetRenderPath(effectRenderPath);
     RENDERER->SetViewport(0, viewport);
+}
+void EdddyCam::HandleMapChange(StringHash eventType, VariantMap& eventData)
+{
+    BlockMap* blockMap{ static_cast<BlockMap*>(eventData[CurrentMapChange::P_MAP].GetPtr()) };
+    node_->SetPosition(-Max(Max(blockMap->GetMapWidth(),
+                                blockMap->GetMapHeight()),
+                                blockMap->GetMapDepth()) * node_->GetDirection()
+                       + blockMap->GetCenter());
 }
 
 void EdddyCam::Update(float timeStep)

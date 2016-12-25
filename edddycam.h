@@ -37,6 +37,7 @@ public:
     static void RegisterObject(Context* context);
     virtual void OnNodeSet(Node* node);
     virtual void Update(float timeStep);
+    void HandleMapChange(StringHash eventType, VariantMap& eventData);
 
     Quaternion GetRotation() const { return node_->GetRotation(); }
     float GetYaw() const { return GetRotation().EulerAngles().y_; }

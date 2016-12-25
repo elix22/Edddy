@@ -26,15 +26,39 @@
 URHO3D_EVENT(E_CURRENTBLOCKCHANGE, CurrentBlockChange){
     URHO3D_PARAM(P_BLOCK, Block*); // Block pointer
 }
+URHO3D_EVENT(E_CURRENTMAPCHANGE, CurrentMapChange){
+    URHO3D_PARAM(P_MAP, BlockMap*); // BlockMap pointer
+}
+
+#define BLOCKSET "Resources/TestSet.xml"
+#define BLOCKMAP "Resources/TestMap.xml"
 
 class Block;
+
+struct BlockSet{
+    String name_;
+    Vector<Block*> blocks_;
+    Block* GetBlockById(int id);
+};
 
 class EditMaster : public Object
 {
     URHO3D_OBJECT(EditMaster, Object);
 public:
     EditMaster(Context* context);
+    void NewMap();
+    bool LoadMap(String fileName);
+    void SaveMap(BlockMap *blockMap, String fileName);
+
     void LoadBlocks();
+    BlockSet* LoadBlockSet(String fileName);
+    void SaveBlockSet(BlockSet *blockSet, String fileName);
+
+    BlockMap* GetCurrentBlockMap() const { return currentBlockMap_; }
+    void SetCurrentBlockMap(BlockMap* map);
+
+    void SetCurrentBlockSet(BlockSet* blockSet);
+    const Vector<BlockSet*>& GetBlockSets() const { return blockSets_; }
 
     void NextBlock();
     void PreviousBlock();
@@ -47,9 +71,13 @@ public:
     void PutBlock();
     void PickBlock();
 private:
-    Vector<Block*> blocks_;
+    Vector<BlockMap*> blockMaps_;
+    BlockMap* currentBlockMap_;
+
+    Vector<BlockSet*> blockSets_;
     unsigned currentBlockIndex_;
     Block* currentBlock_;
+    BlockSet* currentBlockSet_;
 };
 
 #endif // EDITMASTER_H

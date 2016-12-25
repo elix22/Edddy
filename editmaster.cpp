@@ -28,45 +28,180 @@
 
 EditMaster::EditMaster(Context* context) : Object(context),
     currentBlockIndex_{0},
-    currentBlock_{}
+    currentBlock_{},
+    currentBlockSet_{}
 {
+}
+
+void EditMaster::NewMap()
+{
+    BlockMap* newBlockMap{ MC->GetScene()->CreateChild("BlockMap")->CreateComponent<BlockMap>() };
+
+    newBlockMap->SetMapSize( 23, 5, 23 );
+    newBlockMap->SetBlockSize(Vector3(3.0f, 1.0f, 3.0f));
+    newBlockMap->Initialize();
+
+    blockMaps_.Push(newBlockMap);
+    SetCurrentBlockMap(newBlockMap);
+
+    if (!blockSets_.Size()) {
+
+        LoadBlocks();
+    }
+}
+
+bool EditMaster::LoadMap(String fileName)
+{
+    if (!FILES->FileExists(fileName))
+        return false;
+
+    File file{ MC->GetContext(), fileName, FILE_READ };
+
+    XMLFile* mapXML{ new XMLFile(MC->GetContext()) };
+    mapXML->Load(file);
+    XMLElement rootElem{ mapXML->GetRoot("blockmap") };
+
+    if (rootElem) {
+
+        BlockMap* newBlockMap{ MC->GetScene()->CreateChild("BlockMap")->CreateComponent<BlockMap>() };
+        newBlockMap->LoadXML(rootElem);
+
+        blockMaps_.Push(newBlockMap);
+        SetCurrentBlockMap(newBlockMap);
+
+        return true;
+    }
+    return false;
+}
+
+void EditMaster::SaveMap(BlockMap* blockMap, String fileName)
+{
+
+    XMLFile* mapXML{ new XMLFile(MC->GetContext()) };
+    XMLElement rootElem{ mapXML->CreateRoot("blockmap") };
+
+    blockMap->SaveXML(rootElem);
+
+    File file{ MC->GetContext(), fileName, FILE_WRITE };
+    mapXML->Save(file);
+    file.Close();
 }
 
 void EditMaster::LoadBlocks()
 {
-    PODVector<Model*> models{};
-    CACHE->GetResources<Model>(models);
-    //Remove non-block models
-    for (Model* model: models){
+    if (FILES->FileExists(BLOCKSET)) {
 
-        if (!model->GetName().Contains("Blocks", false))
-            models.Remove(model);
+        LoadBlockSet(BLOCKSET);
 
+    } else {
+
+        PODVector<Model*> models{};
+        CACHE->GetResources<Model>(models);
+        //Remove non-block models
+        for (Model* model: models){
+
+            if (!model->GetName().Contains("Blocks/"))
+                models.Remove(model);
+
+        }
+
+        BlockSet* newBlockSet{ new BlockSet() };
+        newBlockSet->name_ = "test";
+
+        for (Model* model: models){
+
+            Block* block{ new Block(context_) };
+            block->SetId(newBlockSet->blocks_.Size());
+            block->SetModel(model);
+            block->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("VCol"));
+
+            newBlockSet->blocks_.Push(block);
+        }
+
+        blockSets_.Push(newBlockSet);
     }
+}
+BlockSet* EditMaster::LoadBlockSet(String fileName)
+{
+    if (!FILES->FileExists(fileName))
+        return nullptr;
 
-    for (Model* model: models){
+    File file{ MC->GetContext(), fileName, FILE_READ };
+
+    XMLFile* blockSetXML{ new XMLFile(MC->GetContext()) };
+    blockSetXML->Load(file);
+    XMLElement rootElem{ blockSetXML->GetRoot("blockset") };
+
+    BlockSet* newBlockSet{ new BlockSet() };
+    newBlockSet->name_ = rootElem.GetAttribute("name");
+
+    XMLElement blockXML{ rootElem.GetChild("block") };
+    while (blockXML) {
 
         Block* block{ new Block(context_) };
-        block->model_ = model;
-        block->material_ = GetSubsystem<ResourceMaster>()->GetMaterial("VCol");
+        block->SetId(blockXML.GetUInt("id"));
+        block->SetModel(CACHE->GetResource<Model>(blockXML.GetAttribute("model")));
+        block->SetMaterial(CACHE->GetResource<Material>(blockXML.GetAttribute("material")));
 
-        blocks_.Push(block);
+        newBlockSet->blocks_.Push(block);
+
+        blockXML = blockXML.GetNext("block");
     }
 
+    blockSets_.Push(newBlockSet);
+    SetCurrentBlockSet(newBlockSet);
+
+    return newBlockSet;
+}
+
+void EditMaster::SaveBlockSet(BlockSet* blockSet, String fileName)
+{
+    XMLFile* blockSetXML{ new XMLFile(MC->GetContext()) };
+    XMLElement rootElem{ blockSetXML->CreateRoot("blockset") };
+    rootElem.SetString("name", fileName);
+
+    for (Block* b : blockSet->blocks_) {
+
+        b->SaveXML(rootElem);
+
+    }
+
+    File file{ MC->GetContext(), fileName, FILE_WRITE };
+    blockSetXML->Save(file);
+    file.Close();
+}
+
+void EditMaster::SetCurrentBlockMap(BlockMap* map) {
+
+    currentBlockMap_ = map;
+
+    SetCurrentBlock(nullptr);
+
+    VariantMap eventData{};
+    eventData[CurrentMapChange::P_MAP] = currentBlockMap_;
+
+    SendEvent(E_CURRENTMAPCHANGE, eventData);
+}
+
+void EditMaster::SetCurrentBlockSet(BlockSet* blockSet)
+{
+    currentBlockSet_ = blockSet;
 }
 
 void EditMaster::SetCurrentBlock(unsigned index)
 {
-    if (index < blocks_.Size()){
+    if (currentBlockSet_){
+        index = Clamp(index, (unsigned)0, currentBlockSet_->blocks_.Size());
+    } else
+        return;
 
-        currentBlockIndex_ = index;
-        currentBlock_ = blocks_[currentBlockIndex_];
+    currentBlockIndex_ = index;
+    currentBlock_ = currentBlockSet_->blocks_[currentBlockIndex_];
 
-        VariantMap eventData{};
-        eventData[CurrentBlockChange::P_BLOCK] = currentBlock_;
+    VariantMap eventData{};
+    eventData[CurrentBlockChange::P_BLOCK] = currentBlock_;
 
-        SendEvent(E_CURRENTBLOCKCHANGE, eventData);
-    }
+    SendEvent(E_CURRENTBLOCKCHANGE, eventData);
 }
 void EditMaster::SetCurrentBlock(Block* block)
 {
@@ -77,10 +212,15 @@ void EditMaster::SetCurrentBlock(Block* block)
 
         SendEvent(E_CURRENTBLOCKCHANGE, eventData);
 
-    } else if (blocks_.Contains(block)){
-        for (unsigned b{0}; b < blocks_.Size(); ++b){
-            if (blocks_[b] == block){
-                SetCurrentBlock(b);;
+    } else for (BlockSet* blockSet : blockSets_) {
+        if (blockSet->blocks_.Contains(block)){
+            for (unsigned b{0}; b < blockSet->blocks_.Size(); ++b){
+                if (blockSet->blocks_[b] == block){
+                    SetCurrentBlockSet(blockSet);
+                    SetCurrentBlock(b);
+
+                    return;
+                }
             }
         }
     }
@@ -88,25 +228,37 @@ void EditMaster::SetCurrentBlock(Block* block)
 
 void EditMaster::NextBlock()
 {
-    if (++currentBlockIndex_ == blocks_.Size())
+    if (!currentBlock_) {
+
+        SetCurrentBlock(currentBlockIndex_);
+        return;
+    }
+
+    if (++currentBlockIndex_ >= currentBlockSet_->blocks_.Size())
         currentBlockIndex_ = 0;
 
     SetCurrentBlock(currentBlockIndex_);
 }
 void EditMaster::PreviousBlock()
 {
+    if (!currentBlock_){
+
+        SetCurrentBlock(currentBlockIndex_);
+        return;
+    }
+
     if (currentBlockIndex_-- == 0)
-        currentBlockIndex_ = blocks_.Size() - 1;
+        currentBlockIndex_ = currentBlockSet_->blocks_.Size() - 1;
 
     SetCurrentBlock(currentBlockIndex_);
 }
 
 Block* EditMaster::GetBlock(unsigned index)
 {
-    if (index >= blocks_.Size()) {
+    if (index >= currentBlockSet_->blocks_.Size()) {
         return nullptr;
     } else {
-        return blocks_[index];
+        return currentBlockSet_->blocks_[index];
     }
 }
 Block* EditMaster::GetCurrentBlock()
@@ -117,7 +269,7 @@ Block* EditMaster::GetCurrentBlock()
 void EditMaster::PickBlock()
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
-    BlockInstance* blockInstance{ MC->GetMap()->GetBlockInstance(cursor->GetCoords()) };
+    BlockInstance* blockInstance{ GetCurrentBlockMap()->GetBlockInstance(cursor->GetCoords()) };
     if (blockInstance && blockInstance->GetBlock()){
         cursor->SetRotation(blockInstance->GetRotation());
         SetCurrentBlock(blockInstance->GetBlock());
@@ -128,10 +280,18 @@ void EditMaster::PickBlock()
 
 void EditMaster::PutBlock(IntVector3 coords, Quaternion rotation, Block* block)
 {
-    MC->GetMap()->SetBlock(coords, rotation, block);
+    GetCurrentBlockMap()->SetBlock(coords, rotation, block);
 }
 void EditMaster::PutBlock()
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
     PutBlock(cursor->GetCoords(), cursor->GetTargetRotation(), currentBlock_);
+}
+
+Block* BlockSet::GetBlockById(int id) {
+    for (Block* b : blocks_) {
+        if (b->GetId() == id)
+            return b;
+    }
+    return nullptr;
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<blockset name="Resources/TestSet.xml">
+	<block id="0" model="Blocks/CliffLowBend.mdl" material="Materials/VCol.xml" />
+	<block id="1" model="Blocks/CliffBottomBend.mdl" material="Materials/VCol.xml" />
+	<block id="2" model="Blocks/CliffBottomCorner.mdl" material="Materials/VCol.xml" />
+	<block id="3" model="Blocks/CliffBottomEdge.mdl" material="Materials/VCol.xml" />
+	<block id="4" model="Blocks/CliffBottomHillBendLeft.mdl" material="Materials/VCol.xml" />
+	<block id="5" model="Blocks/CliffBottomHillBendRight.mdl" material="Materials/VCol.xml" />
+	<!--block id="6" model="Blocks/CliffBottomHillLeft.mdl" material="Materials/VCol.xml" />
+	<block id="7" model="Blocks/CliffBottomHillRight.mdl" material="Materials/VCol.xml" /-->
+	<block id="8" model="Blocks/CliffLowCorner.mdl" material="Materials/VCol.xml" />
+	<block id="9" model="Blocks/CliffLowEdge.mdl" material="Materials/VCol.xml" />
+	<block id="10" model="Blocks/CliffMiddleBend.mdl" material="Materials/VCol.xml" />
+	<block id="11" model="Blocks/CliffMiddleCorner.mdl" material="Materials/VCol.xml" />
+	<block id="12" model="Blocks/CliffMiddleEdge.mdl" material="Materials/VCol.xml" />
+	<block id="13" model="Blocks/CliffMiddleTopBendLeft.mdl" material="Materials/VCol.xml" />
+	<block id="14" model="Blocks/CliffMiddleTopBendRight.mdl" material="Materials/VCol.xml" />
+	<!--block id="15" model="Blocks/CliffMiddleTopLeft.mdl" material="Materials/VCol.xml" />
+	<block id="16" model="Blocks/CliffMiddleTopRight.mdl" material="Materials/VCol.xml" /-->
+	<block id="17" model="Blocks/CliffToHillLeft.mdl" material="Materials/VCol.xml" />
+	<block id="18" model="Blocks/CliffToHillRight.mdl" material="Materials/VCol.xml" />
+	<block id="19" model="Blocks/CliffTopBend.mdl" material="Materials/VCol.xml" />
+	<block id="20" model="Blocks/CliffTopCorner.mdl" material="Materials/VCol.xml" />
+	<block id="21" model="Blocks/CliffTopEdge.mdl" material="Materials/VCol.xml" />
+	<block id="22" model="Blocks/Flat.mdl" material="Materials/VCol.xml" />
+	<block id="23" model="Blocks/HillBend.mdl" material="Materials/VCol.xml" />
+	<block id="24" model="Blocks/HillCorner.mdl" material="Materials/VCol.xml" />
+	<block id="25" model="Blocks/HillEdge.mdl" material="Materials/VCol.xml" />
+	<block id="26" model="Blocks/RampBottomCenter.mdl" material="Materials/VCol.xml" />
+	<block id="27" model="Blocks/RampBottomLeft.mdl" material="Materials/VCol.xml" />
+	<block id="28" model="Blocks/RampBottomRight.mdl" material="Materials/VCol.xml" />
+	<block id="29" model="Blocks/RampMiddleCenter.mdl" material="Materials/VCol.xml" />
+	<block id="30" model="Blocks/RampMiddleLeft.mdl" material="Materials/VCol.xml" />
+	<block id="31" model="Blocks/RampMiddleRight.mdl" material="Materials/VCol.xml" />
+	<block id="32" model="Blocks/RampTopCenter.mdl" material="Materials/VCol.xml" />
+	<block id="33" model="Blocks/RampTopLeft.mdl" material="Materials/VCol.xml" />
+	<block id="34" model="Blocks/RampTopRight.mdl" material="Materials/VCol.xml" />
+	<block id="35" model="Blocks/ToRampMiddleLeft.mdl" material="Materials/VCol.xml" />
+	<block id="36" model="Blocks/ToRampMiddleRight.mdl" material="Materials/VCol.xml" />
+	<block id="37" model="Blocks/ToRampTopLeft.mdl" material="Materials/VCol.xml" />
+	<block id="38" model="Blocks/ToRampTopRight.mdl" material="Materials/VCol.xml" />
+</blockset>

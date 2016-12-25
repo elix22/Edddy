@@ -23,6 +23,8 @@
 #include <Urho3D/Urho3D.h>
 #include "luckey.h"
 
+class BlockSet;
+
 class Block : public Object
 {
     friend class EditMaster;
@@ -30,10 +32,21 @@ class Block : public Object
     URHO3D_OBJECT(Block, Object);
 public:
     Block(Context* context);
+    static void RegisterAttributes(Context *context);
 
+    void SetId(unsigned id);
+    void SetModel(Model* model);
+    void SetMaterial(Material* material);
+
+    int GetId() const { return id_; }
     Model* GetModel() const { return model_; }
     Material* GetMaterial() const { return material_; }
+
+    BlockSet* GetBlockSet();
+
+    void SaveXML(XMLElement& dest);
 private:
+    unsigned id_;
     String name_;
     Model* model_;
     Material* material_;

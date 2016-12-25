@@ -41,6 +41,7 @@ typedef Vector<InputAction> InputActions;
 class EdddyCursor;
 
 #define ACTION_INTERVAL 0.16f
+#define WHEEL_THRESHOLD 5
 
 class InputMaster : public Object
 {
@@ -55,6 +56,8 @@ public:
 private:
     EdddyCursor* cursor_;
     Vector2 mousePos_;
+    int wheelStep_;
+
     HashMap<int, InputAction> keyBindings_;
     HashMap<int, InputAction> mouseButtonBindings_;
     HashMap<int, InputAction> joystickButtonBindings_;

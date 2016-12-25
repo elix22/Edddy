@@ -27,7 +27,7 @@
 
 StaticModelGroup* GridBlock::activeCenterGroup_{};
 StaticModelGroup* GridBlock::inactiveCenterGroup_{};
-StaticModelGroup* GridBlock::cornerGroup_{};
+StaticModelGroup* GridBlock::sideGroup_{};
 
 void GridBlock::RegisterObject(Context *context)
 {
@@ -36,6 +36,7 @@ void GridBlock::RegisterObject(Context *context)
 GridBlock::GridBlock(Context* context) : BlockInstance(context)
 {
 }
+
 void GridBlock::OnNodeSet(Node *node)
 {
     if (!activeCenterGroup_) {
@@ -48,43 +49,71 @@ void GridBlock::OnNodeSet(Node *node)
         inactiveCenterGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
         inactiveCenterGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CenterInactive"));
     }
-    if (!cornerGroup_) {
-        cornerGroup_ = MC->GetScene()->CreateChild("CornerGroup")->CreateComponent<StaticModelGroup>();
-        cornerGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
-        cornerGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerInactive"));
+    if (!sideGroup_) {
+        sideGroup_ = MC->GetScene()->CreateChild("SideGroup")->CreateComponent<StaticModelGroup>();
+        sideGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Plane"));
+        sideGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("TransparentGlow"));
     }
 
+    blockMap_ = node_->GetParent()->GetComponent<BlockMap>();
 
     BlockInstance::OnNodeSet(node);
+    blockNode_->SetPosition(Vector3::DOWN * blockMap_->GetBlockHeight() * 0.5f);
 
-    gridNode_ = node_->CreateChild("GRID");
+    sidesNode_ = node_->CreateChild("SIDES");
+    centerNode_ = sidesNode_->CreateChild("CENTER");
 
-    centerNode_ = gridNode_->CreateChild("CENTER");
-//    centerModel_ = centerNode_->CreateComponent<StaticModel>();
-//    centerModel_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
-//    inactiveCenterGroup_->AddInstanceNode(centerNode_);
-
-  /*  for (int c{0}; c < 8; ++c) {
-
-        Node* cornerNode{ gridNode_->CreateChild("CORNER") };
-        cornerNode->SetPosition(Vector3(
-                                    0.5f * BLOCK_WIDTH,
-                                    0.5f * BLOCK_HEIGHT,
-                                    0.5f * BLOCK_DEPTH));
-        cornerNode->RotateAround(cornerNode->GetParent()->GetPosition(),
-                                 Quaternion(
-                                    c/4 * 180,
-                                    (c % 4) * 90.0f,
-                                    0.0f), TS_PARENT);*/
-
-//        StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
-//        cornerModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
-//        cornerModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerInactive"));
-
-//        cornerNodes_.Push(cornerNode);
-//        cornerGroup_->AddInstanceNode(cornerNode);
-//    }
+    CreateSideNodes();
 }
+void GridBlock::CreateSideNodes()
+{
+    for (int s{0}; s < 6; ++s) {
+
+        Node* sideNode{ sidesNode_->CreateChild("SIDE") };
+
+        Vector3 pos{};
+        Quaternion rot{};
+        Vector3 scale{ Vector3::ONE };
+        switch(s) {
+        case 0:
+            pos = Vector3::UP * blockMap_->GetBlockHeight() * 0.5f;
+            scale = Vector3(blockMap_->GetBlockWidth(), 1.0f, blockMap_->GetBlockDepth());
+            break;
+        case 1:
+            pos = Vector3::DOWN * blockMap_->GetBlockHeight() * 0.5f;
+            scale = Vector3(blockMap_->GetBlockWidth(), 1.0f, blockMap_->GetBlockDepth());
+            break;
+        case 2:
+            pos = Vector3::LEFT * blockMap_->GetBlockWidth() * 0.5f;
+            rot = Quaternion(90.0f, Vector3::FORWARD);
+            scale = Vector3(blockMap_->GetBlockHeight(), 1.0f, blockMap_->GetBlockDepth());
+            break;
+        case 3:
+            pos = Vector3::RIGHT * blockMap_->GetBlockWidth() * 0.5f;
+            rot = Quaternion(90.0f, Vector3::BACK);
+            scale = Vector3(blockMap_->GetBlockHeight(), 1.0f, blockMap_->GetBlockDepth());
+            break;
+        case 4:
+            pos = Vector3::FORWARD * blockMap_->GetBlockDepth() * 0.5f;
+            rot = Quaternion(90.0f, Vector3::RIGHT);
+            scale = Vector3(blockMap_->GetBlockWidth(), 1.0f, blockMap_->GetBlockHeight());
+            break;
+        case 5:
+            pos = Vector3::BACK * blockMap_->GetBlockDepth() * 0.5f;
+            rot = Quaternion(90.0f, Vector3::LEFT);
+            scale = Vector3(blockMap_->GetBlockWidth(), 1.0f, blockMap_->GetBlockHeight());
+            break;
+        default: break;
+        }
+
+        sideNode->SetPosition(pos);
+        sideNode->SetRotation(rot);
+        sideNode->SetScale(scale);
+
+        sideNodes_.Push(sideNode);
+    }
+}
+
 void GridBlock::DelayedStart()
 {
 
@@ -108,9 +137,9 @@ void GridBlock::SetCoords(IntVector3 coords)
 void GridBlock::UpdatePosition()
 {
     node_->SetPosition(Vector3(
-                           coords_.x_ * BLOCK_WIDTH,
-                           coords_.y_ * BLOCK_HEIGHT,
-                           coords_.z_ * BLOCK_DEPTH));
+                           coords_.x_ * blockMap_->GetBlockWidth(),
+                           coords_.y_ * blockMap_->GetBlockHeight(),
+                           coords_.z_ * blockMap_->GetBlockDepth()));
 }
 
 void GridBlock::Update(float timeStep)
@@ -118,6 +147,12 @@ void GridBlock::Update(float timeStep)
 
 }
 
+
+//void GridBlock::UpdateSelectionBorders(StringHash eventType, VariantMap& eventData)
+//{ (void)eventType; (void)eventData;
+
+
+//}
 
 void GridBlock::HandleCursorStep(StringHash eventType, VariantMap& eventData)
 { (void)eventType; (void)eventData;
@@ -127,7 +162,7 @@ void GridBlock::HandleCursorStep(StringHash eventType, VariantMap& eventData)
                           static_cast<float>(cursor->GetCoords().y_),
                           static_cast<float>(cursor->GetCoords().z_) };
 
-    float distanceToCursor{ Distance(node_->GetPosition() / BLOCK_SIZE, cursorCoords) };
+    float distanceToCursor{ Distance(node_->GetPosition() / blockMap_->GetBlockSize(), cursorCoords) };
 
     float centerScale{1.0f - Clamp(distanceToCursor * 0.25f - 0.5f, 0.0f, 0.666f)};
 
@@ -135,20 +170,20 @@ void GridBlock::HandleCursorStep(StringHash eventType, VariantMap& eventData)
 
     if (WithinLock()){
 
-        activeCenterGroup_->AddInstanceNode(centerNode_);
-        //            inactiveCenterGroup_->RemoveInstanceNode(centerNode_);
+        if (coords_ == cursor->GetCoords()) {
+            activeCenterGroup_->AddInstanceNode(centerNode_);
+            inactiveCenterGroup_->RemoveInstanceNode(centerNode_);
+
+        } else {
+            inactiveCenterGroup_->AddInstanceNode(centerNode_);
+            activeCenterGroup_->RemoveInstanceNode(centerNode_);
+        }
 
     } else {
 
-        //            inactiveCenterGroup_->AddInstanceNode(centerNode_);
         activeCenterGroup_->RemoveInstanceNode(centerNode_);
+        inactiveCenterGroup_->RemoveInstanceNode(centerNode_);
     }
-
-   /* float cornerScale{1.0f - Clamp(distanceToCursor * 0.1f - 0.1f, 0.0f, 0.666f)};
-    if (distanceToCursor < 0.1f) cornerScale = 0.0f;
-    for (Node* cornerNode : cornerNodes_) {
-        cornerNode->SetScale(cornerScale);
-    }*/
 }
 
 bool GridBlock::WithinLock()

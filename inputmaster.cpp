@@ -27,7 +27,8 @@
 using namespace LucKey;
 
 InputMaster::InputMaster(Context* context) : Object(context),
-    mousePos_{ Vector2::ONE * 0.5f }
+    mousePos_{ Vector2::ONE * 0.5f },
+    wheelStep_{}
 {
     for (int a{0}; a < ALL_ACTIONS; ++a){
         actionTime_[a] = 0.0f;
@@ -83,6 +84,25 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
     float timeStep{ eventData[Update::P_TIMESTEP].GetFloat() };
     InputActions activeActions{};
 
+    //Handle wheel input
+    int wheel{ INPUT->GetMouseMoveWheel() };
+    wheelStep_ += wheel;
+    if (Abs(wheelStep_) > WHEEL_THRESHOLD) {
+        wheelStep_ = 0;
+
+        if (INPUT->GetKeyDown(KEY_CTRL)){
+            if (wheel < 0)
+                activeActions.Push(ACTION_ROTATE_CW);
+            if (wheel > 0)
+                activeActions.Push(ACTION_ROTATE_CCW);
+        } else {
+            if (wheel < 0)
+                activeActions.Push(ACTION_BACK);
+            if (wheel > 0)
+                activeActions.Push(ACTION_FORWARD);
+        }
+    }
+
     //Convert key presses to actions
     for (int key : pressedKeys_){
         if (keyBindings_.Contains(key)){
@@ -123,6 +143,11 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
     for (int a{0}; a < ALL_ACTIONS; ++a){
         unusedActions.Push(a);
     }
+
+    bool flipAxes{ INPUT->GetKeyDown(KEY_SHIFT)
+                || INPUT->GetKeyDown(KEY_LSHIFT)
+                || INPUT->GetKeyDown(KEY_RSHIFT) };
+
     //Handle actions and reset action timers
     for (InputAction action : actions){
 
@@ -132,7 +157,7 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
         if (actionTime_[action] == 0.0f
          || actionTime_[action] >= ACTION_INTERVAL)
         {
-            actionTime_[action] = 0.0f;
+            actionTime_[action] = 10e-5;
 
             switch (action){
             case ACTION_UP:       case ACTION_DOWN:
@@ -142,21 +167,21 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
             case ACTION_X_AXIS:{
                 std::bitset<3> lock{};
                 lock[0] = true;
-                if (INPUT->GetKeyDown(KEY_SHIFT))
+                if (flipAxes)
                     lock.flip();
                 cursor_->SetAxisLock(lock);
             } break;
             case ACTION_Y_AXIS:{
                 std::bitset<3> lock{};
                 lock[1] = true;
-                if (INPUT->GetKeyDown(KEY_SHIFT))
+                if (flipAxes)
                     lock.flip();
                 cursor_->SetAxisLock(lock);
             } break;
             case ACTION_Z_AXIS:{
                 std::bitset<3> lock{};
                 lock[2] = true;
-                if (INPUT->GetKeyDown(KEY_SHIFT))
+                if (flipAxes)
                     lock.flip();
                 cursor_->SetAxisLock(lock);
             } break;
@@ -185,7 +210,7 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
         actionTime_[action] += timeStep;
     }
     for (int a : unusedActions){
-        actionTime_[a] = 0.0f;
+            actionTime_[a] = 0.0f;
     }
 }
 
@@ -219,7 +244,7 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
     case KEY_ESCAPE:{
         MC->Exit();
     } break;
-    /*case KEY_9:{
+    case KEY_F12:{
         Image screenshot(context_);
         Graphics* graphics{ GetSubsystem<Graphics>() };
         graphics->TakeScreenShot(screenshot);
@@ -228,7 +253,7 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
                 Time::GetTimeStamp().Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_')+".png";
         //Log::Write(1, fileName);
         screenshot.SavePNG(fileName);
-    } break;*/
+    } break;
     case KEY_Q:{
         if (INPUT->GetKeyDown(KEY_LCTRL) || INPUT->GetKeyDown(KEY_RCTRL))
             MC->Exit();

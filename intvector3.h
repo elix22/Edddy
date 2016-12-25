@@ -18,6 +18,8 @@
 */
 
 #include <Urho3D/Container/Str.h>
+#include <Urho3D/Math/Vector3.h>
+
 
 #ifndef INTVECTOR3_H
 #define INTVECTOR3_H
@@ -130,6 +132,9 @@ public:
 
     /// Return as string.
     Urho3D::String ToString() const;
+
+    /// To Vector3
+    Urho3D::Vector3 ToVector3() const;
 
     /// X coordinate.
     int x_;

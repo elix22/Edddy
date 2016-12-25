@@ -26,3 +26,8 @@ const IntVector3 IntVector3::DOWN(   0,-1, 0);
 const IntVector3 IntVector3::FORWARD(0, 0, 1);
 const IntVector3 IntVector3::BACK(   0, 0,-1);
 const IntVector3 IntVector3::ONE(    1, 1, 1);
+
+Urho3D::Vector3 IntVector3::ToVector3() const
+{
+    return Urho3D::Vector3(x_, y_, z_);
+}
