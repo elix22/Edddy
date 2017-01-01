@@ -46,7 +46,7 @@ EdddyCursor::EdddyCursor(Context* context) : LogicComponent(context),
 }
 
 void EdddyCursor::OnNodeSet(Node *node)
-{ (void)node;
+{ if (!node) return;
 
     blockNode_ = node_->CreateChild("PREVIEW");
     blockModel_ = blockNode_->CreateComponent<StaticModel>();
@@ -55,6 +55,7 @@ void EdddyCursor::OnNodeSet(Node *node)
     rigidBody_->SetKinematic(true);
 
     for (int c{0}; c < 3; ++c){
+
         CollisionShape* hitPlane{ node_->CreateComponent<CollisionShape>() };
         hitPlane->SetBox(Vector3(c == 0 ? 0.0f : 1000.0f,
                                  c == 1 ? 0.0f : 1000.0f,

@@ -33,7 +33,7 @@ void EdddyCam::RegisterObject(Context* context)
 }
 
 void EdddyCam::OnNodeSet(Node *node)
-{ (void)node;
+{ if (!node) return;
 
     camera_ = node_->CreateComponent<Camera>();
     camera_->SetFarClip(1024.0f);

@@ -29,7 +29,7 @@ BlockInstance::BlockInstance(Context* context) : LogicComponent(context),
 }
 
 void BlockInstance::OnNodeSet(Node *node)
-{ (void)node;
+{ if (!node) return;
 
     Vector<String> tag{};
     tag.Push(String("Block"));
@@ -38,7 +38,6 @@ void BlockInstance::OnNodeSet(Node *node)
     blockNode_ = node_->CreateChild("BLOCK");
 
     blockModel_ = blockNode_->CreateComponent<StaticModel>();
-    blockModel_->SetCastShadows(true);
 }
 
 void BlockInstance::SetBlock(Block* block, Quaternion rotation)
@@ -50,8 +49,7 @@ void BlockInstance::SetBlock(Block* block, Quaternion rotation)
         blockMaterial_ = block->GetMaterial();
         blockModel_->SetMaterial(blockMaterial_);
 
-        rotation_ = rotation;
-        blockNode_->SetRotation(rotation_);
+        blockNode_->SetRotation(rotation);
 
     } else {
 

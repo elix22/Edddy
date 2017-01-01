@@ -38,19 +38,20 @@ GridBlock::GridBlock(Context* context) : BlockInstance(context)
 }
 
 void GridBlock::OnNodeSet(Node *node)
-{
+{ if (!node) return;
+
     if (!activeCenterGroup_) {
-        activeCenterGroup_ = MC->GetScene()->CreateChild("ActiveCenterGroup")->CreateComponent<StaticModelGroup>();
+        activeCenterGroup_ = MC->GetScene()->CreateComponent<StaticModelGroup>();
         activeCenterGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
         activeCenterGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CenterActive"));
     }
     if (!inactiveCenterGroup_) {
-        inactiveCenterGroup_ = MC->GetScene()->CreateChild("InactiveCenterGroup")->CreateComponent<StaticModelGroup>();
+        inactiveCenterGroup_ = MC->GetScene()->CreateComponent<StaticModelGroup>();
         inactiveCenterGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Center"));
         inactiveCenterGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CenterInactive"));
     }
     if (!sideGroup_) {
-        sideGroup_ = MC->GetScene()->CreateChild("SideGroup")->CreateComponent<StaticModelGroup>();
+        sideGroup_ = MC->GetScene()->CreateComponent<StaticModelGroup>();
         sideGroup_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Plane"));
         sideGroup_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("TransparentGlow"));
     }

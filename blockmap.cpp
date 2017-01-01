@@ -43,7 +43,7 @@ BlockMap::BlockMap(Context* context) : LogicComponent(context),
 
 
 void BlockMap::OnNodeSet(Node *node)
-{ (void)node;
+{ if (!node) return;
 }
 void BlockMap::Initialize()
 {
@@ -51,8 +51,8 @@ void BlockMap::Initialize()
         Sheet sheet{};
         for (int x{0}; x < GetMapWidth(); ++x)
             for (int z{0}; z < GetMapDepth(); ++z){
-                Node* gridNode_{ node_->CreateChild("GridBlock") };
-                GridBlock* gridBlock{ gridNode_->CreateComponent<GridBlock>() };
+                Node* gridNode{ node_->CreateChild("GridBlock") };
+                GridBlock* gridBlock{ gridNode->CreateComponent<GridBlock>() };
                 gridBlock->Init(IntVector3(x, y, z));
 
                 IntVector2 sheetCoords(x, z);

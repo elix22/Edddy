@@ -30,7 +30,8 @@ FreeBlock::FreeBlock(Context* context) : BlockInstance(context)
 
 
 void FreeBlock::OnNodeSet(Node *node)
-{
+{ if (!node) return;
+
     BlockInstance::OnNodeSet(node);
 }
 

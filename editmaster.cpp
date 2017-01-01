@@ -56,9 +56,10 @@ bool EditMaster::LoadMap(String fileName)
         return false;
 
     File file{ MC->GetContext(), fileName, FILE_READ };
-
     XMLFile* mapXML{ new XMLFile(MC->GetContext()) };
     mapXML->Load(file);
+    file.Close();
+
     XMLElement rootElem{ mapXML->GetRoot("blockmap") };
 
     if (rootElem) {

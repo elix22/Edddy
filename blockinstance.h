@@ -32,13 +32,12 @@ public:
     virtual void OnNodeSet(Node* node);
     void SetBlock(Block* block, Quaternion rotation);
     Block* GetBlock() const { return block_; }
-    Quaternion GetRotation() const { return rotation_; }
+    Quaternion GetRotation() const { return blockNode_->GetRotation(); }
 protected:
     BlockMap* blockMap_;
 
     Block* block_;
     Node* blockNode_;
-    Quaternion rotation_;
     StaticModel* blockModel_;
     Material* blockMaterial_;
 };
