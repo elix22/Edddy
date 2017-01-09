@@ -76,9 +76,13 @@
 #include <Urho3D/Scene/Node.h>
 #include <Urho3D/Scene/SceneEvents.h>
 #include <Urho3D/Scene/Scene.h>
+#include <Urho3D/UI/Button.h>
 #include <Urho3D/UI/Font.h>
+#include <Urho3D/UI/LineEdit.h>
 #include <Urho3D/UI/Text.h>
 #include <Urho3D/UI/UI.h>
+#include <Urho3D/UI/UIEvents.h>
+#include <Urho3D/UI/Window.h>
 #include <Urho3D/Urho2D/TileMap2D.h>
 #include <Urho3D/Urho2D/TmxFile2D.h>
 #include <Urho3D/Scene/ValueAnimation.h>

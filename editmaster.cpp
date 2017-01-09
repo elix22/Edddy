@@ -33,19 +33,18 @@ EditMaster::EditMaster(Context* context) : Object(context),
 {
 }
 
-void EditMaster::NewMap()
+void EditMaster::NewMap(const IntVector3& mapSize, const Vector3& blockSize)
 {
     BlockMap* newBlockMap{ MC->GetScene()->CreateChild("BlockMap")->CreateComponent<BlockMap>() };
 
-    newBlockMap->SetMapSize( 23, 5, 23 );
-    newBlockMap->SetBlockSize(Vector3(3.0f, 1.0f, 3.0f));
+    newBlockMap->SetMapSize(mapSize);
+    newBlockMap->SetBlockSize(blockSize);
     newBlockMap->Initialize();
 
     blockMaps_.Push(newBlockMap);
     SetCurrentBlockMap(newBlockMap);
 
     if (!blockSets_.Size()) {
-
         LoadBlocks();
     }
 }
@@ -69,6 +68,9 @@ bool EditMaster::LoadMap(String fileName)
 
         blockMaps_.Push(newBlockMap);
         SetCurrentBlockMap(newBlockMap);
+
+        if (!blockSets_.Size())
+            LoadBlocks();
 
         return true;
     }
@@ -107,7 +109,7 @@ void EditMaster::LoadBlocks()
         }
 
         BlockSet* newBlockSet{ new BlockSet() };
-        newBlockSet->name_ = "test";
+        newBlockSet->name_ = "Resources/TestSet.xml";
 
         for (Model* model: models){
 
@@ -120,6 +122,7 @@ void EditMaster::LoadBlocks()
         }
 
         blockSets_.Push(newBlockSet);
+        SetCurrentBlockSet(newBlockSet);
     }
 }
 BlockSet* EditMaster::LoadBlockSet(String fileName)
@@ -271,10 +274,12 @@ void EditMaster::PickBlock()
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
     BlockInstance* blockInstance{ GetCurrentBlockMap()->GetBlockInstance(cursor->GetCoords()) };
-    if (blockInstance && blockInstance->GetBlock()){
+    if (blockInstance && blockInstance->GetBlock()) {
+
         cursor->SetRotation(blockInstance->GetRotation());
         SetCurrentBlock(blockInstance->GetBlock());
     } else {
+
         SetCurrentBlock(nullptr);
     }
 }
@@ -285,6 +290,9 @@ void EditMaster::PutBlock(IntVector3 coords, Quaternion rotation, Block* block)
 }
 void EditMaster::PutBlock()
 {
+    if (!currentBlockMap_)
+        return;
+
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
     PutBlock(cursor->GetCoords(), cursor->GetTargetRotation(), currentBlock_);
 }

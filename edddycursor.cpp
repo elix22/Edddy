@@ -67,7 +67,7 @@ void EdddyCursor::OnNodeSet(Node *node)
     boxModel_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Cursor"));
     boxModel_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("TransparentGlow"));
 
-    UpdateSizeAndOffset();
+//    UpdateSizeAndOffset();
 //    SetCoords(IntVector3(MAP_WIDTH / 2, 0, MAP_DEPTH / 2));
 
     SubscribeToEvent(E_CURRENTBLOCKCHANGE, URHO3D_HANDLER(EdddyCursor, UpdateModel));
@@ -76,7 +76,7 @@ void EdddyCursor::OnNodeSet(Node *node)
 }
 void EdddyCursor::DelayedStart()
 {
-    MoveTo(GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetCenter());
+//    MoveTo(GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetCenter());
 //    SendEvent(E_CURSORSTEP);
 }
 void EdddyCursor::HandleMapChange(StringHash eventType, VariantMap& eventData)
@@ -84,8 +84,14 @@ void EdddyCursor::HandleMapChange(StringHash eventType, VariantMap& eventData)
 
     BlockMap* blockMap{ static_cast<BlockMap*>(eventData[CurrentMapChange::P_MAP].GetPtr()) };
 
-    UpdateSizeAndOffset();
-    MoveTo(blockMap->GetCenter());
+    if (blockMap) {
+
+        UpdateSizeAndOffset();
+        MoveTo(blockMap->GetCenter());
+        node_->SetEnabled(true);
+    } else {
+        node_->SetEnabled(false);
+    }
 }
 void EdddyCursor::UpdateModel(StringHash eventType, VariantMap& eventData)
 { (void)eventType;

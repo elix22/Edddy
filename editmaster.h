@@ -46,7 +46,7 @@ class EditMaster : public Object
     URHO3D_OBJECT(EditMaster, Object);
 public:
     EditMaster(Context* context);
-    void NewMap();
+    void NewMap(const IntVector3& mapSize = IntVector3(23, 5, 23), const Vector3& blockSize = Vector3(3.0f, 1.0f, 3.0f));
     bool LoadMap(String fileName);
     void SaveMap(BlockMap *blockMap, String fileName);
 

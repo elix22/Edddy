@@ -243,7 +243,7 @@ void BlockMap::SetMapSize(int w, int h, int d)
 
 Vector3 BlockMap::GetCenter()
 {
-    return node_->GetPosition() + 0.5f * BLOCK_SIZE * mapSize_.ToVector3();
+    return node_->GetPosition() + 0.5f * blockSize_ * mapSize_.ToVector3();
 }
 
 

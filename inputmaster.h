@@ -53,6 +53,8 @@ public:
     EdddyCursor* GetCursor() const { return cursor_; }
     bool CheckActionable(InputAction action, const InputActions& inputActions, bool reset = false);
     Ray MouseRay();
+
+    IntVector2 GetMouseScreenPos() const { return IntVector2(Round(mousePos_.x_ * GRAPHICS->GetWidth()), Round(mousePos_.y_ * GRAPHICS->GetHeight())); }
 private:
     EdddyCursor* cursor_;
     Vector2 mousePos_;

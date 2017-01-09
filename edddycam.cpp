@@ -79,7 +79,9 @@ void EdddyCam::HandleMapChange(StringHash eventType, VariantMap& eventData)
 
 void EdddyCam::Update(float timeStep)
 {
-    if (!INPUT->GetMouseButtonDown(2)){
+    if (!INPUT->GetMouseButtonDown(2)
+     && !GetSubsystem<UI>()->GetFocusElement()
+     && GetSubsystem<EditMaster>()->GetCurrentBlockMap()){
 
         float translationSpeed{ 5.0f * (2.0f + 3.0f * INPUT->GetKeyDown(KEY_SHIFT)) };
         float zoomSpeed{ 0.1f * (2.0f + 3.0f * INPUT->GetKeyDown(KEY_SHIFT)) };

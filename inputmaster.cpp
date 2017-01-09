@@ -18,11 +18,13 @@
 */
 
 #include "mastercontrol.h"
-#include "inputmaster.h"
 #include "editmaster.h"
 #include "castmaster.h"
+#include "guimaster.h"
 #include "edddycam.h"
 #include "edddycursor.h"
+
+#include "inputmaster.h"
 
 using namespace LucKey;
 
@@ -112,11 +114,13 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
         }
     }
     //Convert mouse button presses to actions
-    for (int button : pressedMouseButtons_){
-        if (mouseButtonBindings_.Contains(button)){
-            InputAction action{ mouseButtonBindings_[button] };
-            if (!activeActions.Contains(action))
-                activeActions.Push(action);
+    if (!GetSubsystem<UI>()->GetElementAt(INPUT->GetMousePosition())){
+        for (int button : pressedMouseButtons_){
+            if (mouseButtonBindings_.Contains(button)){
+                InputAction action{ mouseButtonBindings_[button] };
+                if (!activeActions.Contains(action))
+                    activeActions.Push(action);
+            }
         }
     }
     //Convert jostick button presses to actions
@@ -133,6 +137,9 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
 
 void InputMaster::HandleActions(const InputActions& actions, float timeStep)
 {
+    if (GetSubsystem<UI>()->GetFocusElement())
+        return;
+
     IntVector3 step{GetMoveFromActions(actions)};
     if (step != IntVector3::ZERO){
         actionTime_[ACTION_CONFIRM] = 0.0f;
@@ -240,11 +247,13 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
 
     pressedKeys_.Insert(key);
 
+    bool ctrlDown{ INPUT->GetKeyDown(KEY_LCTRL) || INPUT->GetKeyDown(KEY_RCTRL) };
+
     switch (key){
-    case KEY_ESCAPE:{
-        MC->Exit();
+    case KEY_ESCAPE: {
+        GetSubsystem<UI>()->SetFocusElement(nullptr);
     } break;
-    case KEY_F12:{
+    case KEY_F12: {
         Image screenshot(context_);
         Graphics* graphics{ GetSubsystem<Graphics>() };
         graphics->TakeScreenShot(screenshot);
@@ -254,11 +263,14 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
         //Log::Write(1, fileName);
         screenshot.SavePNG(fileName);
     } break;
-    case KEY_Q:{
-        if (INPUT->GetKeyDown(KEY_LCTRL) || INPUT->GetKeyDown(KEY_RCTRL))
+    case KEY_Q: {
+        if (ctrlDown)
             MC->Exit();
-
-    }break;
+    } break;
+    case KEY_N: {
+        if (ctrlDown)
+            GetSubsystem<GUIMaster>()->OpenNewMapWindow();
+    }
     default: break;
     }
 }
