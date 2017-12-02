@@ -75,7 +75,7 @@ void EdddyCam::HandleMapChange(StringHash eventType, VariantMap& eventData)
     BlockMap* blockMap{ static_cast<BlockMap*>(eventData[CurrentMapChange::P_MAP].GetPtr()) };
     node_->SetPosition(-Max(Max(blockMap->GetMapWidth(),
                                 blockMap->GetMapHeight()),
-                                blockMap->GetMapDepth()) * node_->GetDirection() * blockMap->GetBlockSize().Length()
+                                blockMap->GetMapDepth()) * node_->GetDirection() * Sqrt(blockMap->GetBlockSize().Length())
                        + blockMap->GetCenter());
 }
 

@@ -182,9 +182,8 @@ void EditMaster::SetCurrentBlockMap(BlockMap* map)
 {
     if (!map)
         return;
-
-    if (currentBlockMap_) {
-        currentBlockMap_->GetNode()->Remove();
+    else if (currentBlockMap_) {
+        currentBlockMap_->GetNode()->SetEnabledRecursive(false);
     }
 
     currentBlockMap_ = map;

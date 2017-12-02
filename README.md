@@ -1,4 +1,4 @@
-![Edddy](icon.png)
+![Edddy](logo.png)
 
 [![Build Status](https://travis-ci.org/LucKeyProductions/Edddy.svg?branch=master)](https://travis-ci.org/LucKeyProductions/Edddy)
 

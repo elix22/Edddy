@@ -449,9 +449,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="367.19964"
-     inkscape:cy="233.59913"
+     inkscape:zoom="0.35355339"
+     inkscape:cx="806.6508"
+     inkscape:cy="367.11919"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -460,7 +460,7 @@
      inkscape:guide-bbox="true"
      inkscape:snap-global="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1056"
+     inkscape:window-height="1061"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -517,7 +517,7 @@
        inkscape:connector-curvature="0" />
     <path
        id="path4248"
-       d="m -544.57749,823.13142 5.36558,45.22632 51.80455,35.43848 4.78324,62.6359 37.11049,28.85461"
+       d="m -544.57749,823.13142 5.36558,45.22632 51.80455,35.43848 4.78324,62.6359 35.9043,28.92247"
        style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.13570356;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:23;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.38790038;marker:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
@@ -552,7 +552,7 @@
        sodipodi:nodetypes="ccccc"
        inkscape:connector-curvature="0"
        style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.13570356;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:23;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.38790038;marker:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
-       d="m -320.60547,776.13733 -41.84992,-17.96646 -56.5929,27.14481 -56.63592,-27.17552 -43.54408,17.7113"
+       d="m -320.60547,776.13733 -41.84992,-17.96646 -56.5929,27.14481 -56.63592,-27.17552 -43.19053,16.56225"
        id="path3661" />
     <path
        style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:url(#radialGradient3669);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6.69461107;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:23;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;filter:url(#filter5380);color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
@@ -583,7 +583,7 @@
        inkscape:connector-curvature="0" />
     <path
        id="path3681"
-       d="m -391.8934,993.59981 36.48436,-27.25987 4.78835,-62.5833 51.85266,-35.46036 6.4336,-46.56593"
+       d="m -391.8934,993.59981 36.48436,-27.25987 4.78835,-62.5833 51.85266,-35.46036 7.1836,-45.62843"
        style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.13570356;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:23;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.38790038;marker:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
