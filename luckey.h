@@ -26,6 +26,7 @@
 #include <Urho3D/Container/HashBase.h>
 #include <Urho3D/Container/HashMap.h>
 #include <Urho3D/Container/Vector.h>
+#include <Urho3D/Core/Attribute.h>
 #include <Urho3D/Core/CoreEvents.h>
 #include <Urho3D/Engine/Application.h>
 #include <Urho3D/Engine/Console.h>
@@ -91,7 +92,7 @@
 
 #include <initializer_list>
 #include <bitset>
-#include "intvector3.h"
+//#include "intvector3.h"
 #include "mastercontrol.h"
 
 #define FILES GetSubsystem<FileSystem>()
@@ -104,6 +105,7 @@
 #define AUDIO GetSubsystem<Audio>()
 
 #define MC GetSubsystem<MasterControl>()
+#define RESOURCE GetSubsystem<ResourceMaster>()
 #define LAYER(n) static_cast<unsigned>(1 << n)
 
 namespace Urho3D {
@@ -129,7 +131,9 @@ enum SixaxisButton { SB_SELECT, SB_LEFTSTICK, SB_RIGHTSTICK, SB_START,
 unsigned IntVector2ToHash(IntVector2 vec);
 
 float Delta(float lhs, float rhs, bool angle = false);
-float Distance(const Vector3 from, const Vector3 to);
+float Distance(Vector3 from, Vector3 to, const bool planar = false, Vector3 normal = Vector3::UP);
+float Distance(Vector2 from, Vector2 to);
+float DistanceToPlane(Vector3 from, Vector3 normal = Vector3::UP, Vector3 origin = Vector3::ZERO);
 Vector3 Scale(const Vector3 lhs, const Vector3 rhs);
 IntVector2 Scale(const IntVector2 lhs, const IntVector2 rhs);
 Vector2 Rotate(const Vector2 vec2, const float angle);

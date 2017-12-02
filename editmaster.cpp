@@ -24,9 +24,12 @@
 #include "block.h"
 #include "blockinstance.h"
 #include "blockmap.h"
-
+#include "blockset.h"
+#include "edddyevents.h"
 
 EditMaster::EditMaster(Context* context) : Object(context),
+    blockMaps_{},
+    currentBlockMap_{},
     currentBlockIndex_{0},
     currentBlock_{},
     currentBlockSet_{}
@@ -108,7 +111,7 @@ void EditMaster::LoadBlocks()
 
         }
 
-        BlockSet* newBlockSet{ new BlockSet() };
+        BlockSet* newBlockSet{ new BlockSet(context_) };
         newBlockSet->name_ = "Resources/TestSet.xml";
 
         for (Model* model: models){
@@ -136,7 +139,7 @@ BlockSet* EditMaster::LoadBlockSet(String fileName)
     blockSetXML->Load(file);
     XMLElement rootElem{ blockSetXML->GetRoot("blockset") };
 
-    BlockSet* newBlockSet{ new BlockSet() };
+    BlockSet* newBlockSet{ new BlockSet(context_) };
     newBlockSet->name_ = rootElem.GetAttribute("name");
 
     XMLElement blockXML{ rootElem.GetChild("block") };
@@ -177,6 +180,10 @@ void EditMaster::SaveBlockSet(BlockSet* blockSet, String fileName)
 
 void EditMaster::SetCurrentBlockMap(BlockMap* map) {
 
+    if (currentBlockMap_) {
+        currentBlockMap_->GetNode()->Remove();
+    }
+
     currentBlockMap_ = map;
 
     SetCurrentBlock(nullptr);
@@ -192,20 +199,25 @@ void EditMaster::SetCurrentBlockSet(BlockSet* blockSet)
     currentBlockSet_ = blockSet;
 }
 
-void EditMaster::SetCurrentBlock(unsigned index)
+void EditMaster::SetCurrentBlock(unsigned index, BlockSet* blockSet)
 {
-    if (currentBlockSet_){
-        index = Clamp(index, (unsigned)0, currentBlockSet_->blocks_.Size());
-    } else
+    if (!blockSet)
         return;
+    else if (currentBlockSet_ != blockSet)
+        currentBlockSet_ = blockSet;
 
-    currentBlockIndex_ = index;
+    currentBlockIndex_ = Clamp(index, (unsigned)0, currentBlockSet_->blocks_.Size());
     currentBlock_ = currentBlockSet_->blocks_[currentBlockIndex_];
 
     VariantMap eventData{};
     eventData[CurrentBlockChange::P_BLOCK] = currentBlock_;
 
     SendEvent(E_CURRENTBLOCKCHANGE, eventData);
+}
+
+void EditMaster::SetCurrentBlock(unsigned index)
+{
+    SetCurrentBlock(index, currentBlockSet_);
 }
 void EditMaster::SetCurrentBlock(Block* block)
 {
@@ -286,21 +298,15 @@ void EditMaster::PickBlock()
 
 void EditMaster::PutBlock(IntVector3 coords, Quaternion rotation, Block* block)
 {
+
     GetCurrentBlockMap()->SetBlock(coords, rotation, block);
 }
 void EditMaster::PutBlock()
 {
-    if (!currentBlockMap_)
+    EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
+
+    if (!currentBlockMap_ || cursor->IsHidden())
         return;
 
-    EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
     PutBlock(cursor->GetCoords(), cursor->GetTargetRotation(), currentBlock_);
-}
-
-Block* BlockSet::GetBlockById(int id) {
-    for (Block* b : blocks_) {
-        if (b->GetId() == id)
-            return b;
-    }
-    return nullptr;
 }

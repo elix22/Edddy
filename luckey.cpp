@@ -34,9 +34,23 @@ float LucKey::Delta(float lhs, float rhs, bool angle)
     }
 }
 
-float LucKey::Distance(const Vector3 from, const Vector3 to){
+float LucKey::Distance(Vector3 from, Vector3 to, const bool planar, Vector3 normal)
+{
+    Vector3 difference{ to - from };
+    if (planar) {
+        difference -= difference.ProjectOntoAxis(normal) * normal.Normalized();
+    }
+    return difference.Length();
+}
+float LucKey::DistanceToPlane(Vector3 from, Vector3 normal, Vector3 origin)
+{
+    return Abs((from - origin).ProjectOntoAxis(normal));
+}
+float LucKey::Distance(Vector2 from, Vector2 to)
+{
     return (to - from).Length();
 }
+
 Vector3 LucKey::Scale(const Vector3 lhs, const Vector3 rhs) {
     return Vector3(lhs.x_ * rhs.x_, lhs.y_ * rhs.y_, lhs.z_ * rhs.z_);
 }

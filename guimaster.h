@@ -18,7 +18,7 @@ public:
     void CreateNewMapWindow();
     void CleanFloatInput(StringHash eventType, VariantMap& eventData);
 
-    void OpenNewMapWindow();
+    void OpenNewMapDialog();
 private:
     Window* newMapWindow_;
     SharedPtr<XMLFile> defaultStyle_;
@@ -27,7 +27,7 @@ private:
 
     SharedPtr<UIElement> uiRoot_;
     LineEdit* lineEdit_;
-    HashMap<StringHash, Text*> input_;
+    HashMap<String, Text*> input_;
 };
 
 #endif // GUIMASTER_H

@@ -35,8 +35,8 @@ void EdddyCam::RegisterObject(Context* context)
 void EdddyCam::OnNodeSet(Node *node)
 { if (!node) return;
 
-    camera_ = node_->CreateComponent<Camera>();
-    camera_->SetFarClip(1024.0f);
+    camera_ = node_->CreateChild("Camera")->CreateComponent<Camera>();
+    camera_->SetFarClip(4096.0f);
     camera_->SetFov(60.0f);
 
    /* node_->SetPosition(Vector3(BLOCK_WIDTH  * MAP_WIDTH / 2,
@@ -46,6 +46,8 @@ void EdddyCam::OnNodeSet(Node *node)
 
     Zone* zone{ node_->CreateComponent<Zone>() };
     zone->SetAmbientColor(Color(0.13f, 0.23f, 0.42f));
+    zone->SetFogStart(2048.0f);
+    zone->SetFogEnd(4096.0f);
 
     SetupViewport();
 
@@ -73,7 +75,7 @@ void EdddyCam::HandleMapChange(StringHash eventType, VariantMap& eventData)
     BlockMap* blockMap{ static_cast<BlockMap*>(eventData[CurrentMapChange::P_MAP].GetPtr()) };
     node_->SetPosition(-Max(Max(blockMap->GetMapWidth(),
                                 blockMap->GetMapHeight()),
-                                blockMap->GetMapDepth()) * node_->GetDirection()
+                                blockMap->GetMapDepth()) * node_->GetDirection() * blockMap->GetBlockSize().Length()
                        + blockMap->GetCenter());
 }
 
@@ -81,19 +83,27 @@ void EdddyCam::Update(float timeStep)
 {
     if (!INPUT->GetMouseButtonDown(2)
      && !GetSubsystem<UI>()->GetFocusElement()
-     && GetSubsystem<EditMaster>()->GetCurrentBlockMap()){
+     && GetSubsystem<EditMaster>()->GetCurrentBlockMap()) {
 
-        float translationSpeed{ 5.0f * (2.0f + 3.0f * INPUT->GetKeyDown(KEY_SHIFT)) };
-        float zoomSpeed{ 0.1f * (2.0f + 3.0f * INPUT->GetKeyDown(KEY_SHIFT)) };
-        float rotationSpeed{ 23.0f * (2.0f + 3.0f * INPUT->GetKeyDown(KEY_SHIFT)) };
+        float factor{ (2.0f + 3.0f * INPUT->GetKeyDown(KEY_SHIFT)) };
+        float translationSpeed{ factor * factor};
+        float rotationSpeed{ 23.0f * factor };
         Vector3 cursorPosition{ GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetPosition() };
 
-        node_->Translate( translationSpeed * timeStep *
+        node_->Translate( timeStep * translationSpeed *
                           ((node_->GetDirection() * Vector3(1.0f, 0.0f, 1.0f)).Normalized() * (INPUT->GetKeyDown(KEY_W) - INPUT->GetKeyDown(KEY_S)) +
                            node_->GetRight() * (INPUT->GetKeyDown(KEY_D) - INPUT->GetKeyDown(KEY_A)) +
-                           Vector3::UP * (INPUT->GetKeyDown(KEY_Q) - INPUT->GetKeyDown(KEY_E))) +
-                          zoomSpeed * node_->GetDirection() * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)), TS_WORLD);
+                           Vector3::UP * (INPUT->GetKeyDown(KEY_Q) - INPUT->GetKeyDown(KEY_E))), TS_WORLD);
 
+        bool ortho{ camera_->IsOrthographic() };
+
+        if (!ortho)
+            node_->Translate(timeStep * translationSpeed * node_->GetDirection() * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)), TS_WORLD);
+        else
+            camera_->SetOrthoSize(camera_->GetOrthoSize() - timeStep * translationSpeed * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)));
+
+        camera_->SetOrthographic(INPUT->GetKeyPress(KEY_KP_5) ? !ortho
+                                                             :  ortho);
         node_->RotateAround( cursorPosition,
                              Quaternion(0.0f,
                                         (INPUT->GetKeyDown(KEY_KP_4) - INPUT->GetKeyDown(KEY_KP_6)) * rotationSpeed * timeStep,
@@ -109,22 +119,42 @@ void EdddyCam::Update(float timeStep)
 
 void EdddyCam::Pan(Vector2 pan)
 {
-    Vector3 cursorPosition{ GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetPosition() };
+    EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
+    Vector3 cursorPosition{ cursor->GetNode()->GetPosition() };
     float cursorDistance{ LucKey::Distance(GetPosition(), cursorPosition) };
 
-    float panSpeed{ 1.5f + 1.8f * cursorDistance };
+    float panSpeed{ 1.5f + 1.8f * cursorDistance * (0.01f * camera_->GetFov()) };
     float zoomSpeed{ 13.0f + 5.0f * cursorDistance };
     float rotationSpeed{ 235.0f };
 
-    if (INPUT->GetKeyDown(KEY_SHIFT)){
+    bool ortho{ camera_->IsOrthographic() };
+//    INPUT->SetMouseMode(MM_WRAP);
+
+    //Change field of view
+    if (INPUT->GetKeyDown(KEY_CTRL) && INPUT->GetKeyDown(KEY_SHIFT) && !ortho) {
+
+        camera_->SetFov(Clamp(camera_->GetFov() + 23.0f * (pan.x_ - pan.y_), 5.0f, 120.0f));
+
+    } else if (INPUT->GetKeyDown(KEY_SHIFT)) {
 
         pan *= panSpeed;
 
-        node_->Translate(node_->GetRight() * -pan.x_ + node_->GetUp() * pan.y_, TS_WORLD);
+        if (!ortho) {
+            node_->Translate(node_->GetRight() * -pan.x_ + node_->GetUp() * pan.y_, TS_WORLD);
+        } else {
+            node_->Translate(((cursor->GetLockVector() * node_->GetRight()).Normalized() * -pan.x_
+                            + (cursor->GetLockVector() * node_->GetUp()).Normalized() * pan.y_)
+                             * Sqrt(camera_->GetOrthoSize()) * 0.25f, TS_WORLD);
+
+        }
 
     } else if (INPUT->GetKeyDown(KEY_CTRL)) {
 
-        node_->Translate(zoomSpeed * -node_->GetDirection() * pan.y_, TS_WORLD);
+        if (!ortho) {
+            node_->Translate(zoomSpeed * -node_->GetDirection() * pan.y_, TS_WORLD);
+        } else {
+            camera_->SetOrthoSize(camera_->GetOrthoSize() + zoomSpeed * pan.y_);
+        }
 
     } else {
         node_->RotateAround( cursorPosition,

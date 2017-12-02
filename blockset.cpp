@@ -17,40 +17,21 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef BLOCK_H
-#define BLOCK_H
+#include "block.h"
 
-#include <Urho3D/Urho3D.h>
-#include "luckey.h"
+#include "blockset.h"
 
-class BlockSet;
-
-class Block : public Serializable
+BlockSet::BlockSet(Context* context) : Object(context)
 {
-    friend class EditMaster;
+}
 
-    URHO3D_OBJECT(Block, Serializable);
-public:
-    Block(Context* context);
-    static void RegisterAttributes(Context *context);
+Block* BlockSet::GetBlockById(int id) {
+    for (Block* b : blocks_) {
+        if (b->GetId() == id)
+            return b;
+    }
+    return nullptr;
+}
 
-    void SetId(unsigned id);
-    void SetModel(Model* model);
-    void SetMaterial(Material* material);
 
-    int GetId() const { return id_; }
-    Model* GetModel() const;
-    Material* GetMaterial() const;
 
-    BlockSet* GetBlockSet();
-
-    void SaveXML(XMLElement& dest);
-private:
-    unsigned id_;
-    String name_;
-    String model_;
-    String material_;
-//    void MatchMaterial() {}
-};
-
-#endif // BLOCK_H

@@ -17,18 +17,20 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "resourcemaster.h"
 #include "editmaster.h"
+#include "blockset.h"
 
 #include "block.h"
 
 void Block::RegisterAttributes(Context* context)
 {
-    context->RegisterAttribute<Block>(AttributeInfo(VAR_INT, "id", (size_t)8, Variant((int)0), (unsigned)0));
-    context->RegisterAttribute<Block>(AttributeInfo(VAR_STRING, "model", (size_t)32, Variant(""), (unsigned)0));
-    context->RegisterAttribute<Block>(AttributeInfo(VAR_STRING, "material", (size_t)32, Variant(""), (unsigned)0));
+    URHO3D_ATTRIBUTE("id", unsigned, id_, 0, AM_FILE);
+    URHO3D_ATTRIBUTE("model", String, model_, "", AM_FILE);
+    URHO3D_ATTRIBUTE("material", String, material_, "", AM_FILE);
 }
 
-Block::Block(Context* context) : Object(context)
+Block::Block(Context* context) : Serializable(context)
 {
 }
 
@@ -39,12 +41,22 @@ void Block::SetId(unsigned id)
 
 void Block::SetModel(Model *model)
 {
-    model_ = model;
+    model_ = model->GetName();
 }
 
 void Block::SetMaterial(Material *material)
 {
-    material_ = material;
+    material_ = material->GetName();
+}
+
+Model* Block::GetModel() const
+{
+    return CACHE->GetResource<Model>(model_);
+}
+
+Material* Block::GetMaterial() const
+{
+    return CACHE->GetResource<Material>(material_);
 }
 
 BlockSet* Block::GetBlockSet()
@@ -62,8 +74,8 @@ void Block::SaveXML(XMLElement &dest)
     XMLElement blockElem{ dest.CreateChild("block") };
 
     blockElem.SetUInt("id", id_);
-    blockElem.SetString("model", model_->GetName());
-    blockElem.SetString("material", material_->GetName());
+    blockElem.SetString("model", model_);
+    blockElem.SetString("material", material_);
 }
 
 

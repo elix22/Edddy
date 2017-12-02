@@ -47,6 +47,7 @@ void GUIMaster::CreateNewMapWindow()
 
         Text* rowLabel{ new Text(context_) };
         rowLabel->SetText(i == 0 ? "Map Size" : "Block Size");
+        rowLabel->SetVerticalAlignment(VA_CENTER);
         inputRow->AddChild(rowLabel);
 
         for (int j{0}; j < 3; ++j) {
@@ -72,27 +73,30 @@ void GUIMaster::CreateNewMapWindow()
 
             Text* label{ new Text(context_) };
             label->SetText(axisString);
-            label->SetHorizontalAlignment(HA_RIGHT);
+            label->SetVerticalAlignment(VA_CENTER);
+            label->SetTextAlignment(HA_RIGHT);
             subRow->AddChild(label);
 
-            LineEdit* lineEdit{ new LineEdit(context_) };
-            lineEdit->SetName(i == 0 ? "Map" : "Block" + axisString);
-            lineEdit->SetText(i == 0 ? "10" : "1.0");
-            lineEdit->SetMinSize(IntVector2(32, 32));
-            lineEdit->SetMaxSize(IntVector2(32, 32));
-            Text* lineEditText{ lineEdit->GetTextElement() };
-            lineEditText->SetHorizontalAlignment(HA_RIGHT);
-            input_[StringHash(lineEdit->GetName())] = lineEditText;
+            LineEdit* intEdit{ new LineEdit(context_) };
+            intEdit->SetName((i == 0 ? "Map" : "Block") + axisString);
+            intEdit->SetText(i == 0 ? "10" : "1.0");
+            intEdit->SetMinSize(IntVector2(32, 32));
+            intEdit->SetMaxSize(IntVector2(32, 32));
+            intEdit->SetChildOffset(IntVector2(8, 0));
+            Text* lineEditText{ intEdit->GetTextElement() };
+            lineEditText->SetTextAlignment(HA_RIGHT);
+//            lineEditText->SetHorizontalAlignment(HA_RIGHT);
+            input_[intEdit->GetName()] = lineEditText;
 
             if (i == 0)
-                SubscribeToEvent(lineEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanIntInput));
+                SubscribeToEvent(intEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanIntInput));
             else
-                SubscribeToEvent(lineEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanFloatInput));
+                SubscribeToEvent(intEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanFloatInput));
 
-            subRow->AddChild(lineEdit);
+            subRow->AddChild(intEdit);
             inputRow->AddChild(subRow);
 
-            lineEdit->SetStyleAuto();
+            intEdit->SetStyleAuto();
             label->SetStyleAuto();
         }
         rowLabel->SetStyleAuto();
@@ -121,7 +125,7 @@ void GUIMaster::CreateNewMapWindow()
     newMapWindow_->SetVisible(false);
 }
 
-void GUIMaster::OpenNewMapWindow()
+void GUIMaster::OpenNewMapDialog()
 {
     newMapWindow_->SetVisible(true);
 }
@@ -133,8 +137,7 @@ void GUIMaster::HandleDragBegin(StringHash eventType, VariantMap& eventData)
     if (!draggedElement)
         return;
 
-
-    dragBeginPositionMouse_ = GetSubsystem<InputMaster>()->GetMouseScreenPos();
+    dragBeginPositionMouse_ = INPUT->GetMousePosition();
     dragBeginPositionElement_ = draggedElement->GetPosition();
 }
 
@@ -147,7 +150,7 @@ void GUIMaster::HandleDragMove(StringHash eventType, VariantMap& eventData)
         return;
 
 
-    IntVector2 dragCurrentPosition{ GetSubsystem<InputMaster>()->GetMouseScreenPos() };
+    IntVector2 dragCurrentPosition{ INPUT->GetMousePosition() };
     draggedElement->SetPosition(dragCurrentPosition - dragBeginPositionMouse_ + dragBeginPositionElement_);
 }
 
@@ -159,12 +162,19 @@ void GUIMaster::HandleCloseButtonPushed(StringHash eventType, VariantMap& eventD
 void GUIMaster::HandleNewMapButtonPushed(StringHash eventType, VariantMap& eventData)
 { (void)eventType; (void)eventData;
 
-//    GetSubsystem<EditMaster>()->NewMap(IntVector3(std::stoi(input_[StringHash("MapX")]->GetText().Trimmed().CString()),
-//                                                  std::stoi(input_[StringHash("MapY")]->GetText().Trimmed().CString()),
-//                                                  std::stoi(input_[StringHash("MapZ")]->GetText().Trimmed().CString())),
-//                                        Vector3(std::stof(input_[StringHash("BlockX")]->GetText().Trimmed().CString()),
-//                                                std::stof(input_[StringHash("BlockY")]->GetText().Trimmed().CString()),
-//                                                std::stof(input_[StringHash("BlockZ")]->GetText().Trimmed().CString())));
+    for (Text* t : input_.Values()) {
+        Log::Write(3, t->GetText());
+    }
+
+    IntVector3 mapSize{ std::stoi(input_["MapX"]->GetText().Trimmed().Split('.').Front().Split(',').Front().CString()),
+                        std::stoi(input_["MapY"]->GetText().Trimmed().Split('.').Front().Split(',').Front().CString()),
+                        std::stoi(input_["MapZ"]->GetText().Trimmed().Split('.').Front().Split(',').Front().CString()) };
+
+    Vector3 blockSize{ std::stof(input_["BlockX"]->GetText().CString()),
+                       std::stof(input_["BlockY"]->GetText().CString()),
+                       std::stof(input_["BlockZ"]->GetText().CString()) };
+
+    GetSubsystem<EditMaster>()->NewMap(mapSize, blockSize);
 
     newMapWindow_->SetVisible(false);
 }

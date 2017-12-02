@@ -23,7 +23,6 @@
 #include <Urho3D/Urho3D.h>
 
 #include "luckey.h"
-#include "intvector3.h"
 #include "freeblock.h"
 
 #define BLOCK_WIDTH  3.0f

@@ -25,6 +25,9 @@
 
 URHO3D_EVENT(E_CURSORSTEP, CursorStep){}
 
+#define MAT_GLOWWIRE GetSubsystem<ResourceMaster>()->GetMaterial("GlowWire")
+#define MAT_TRANSPARENTGLOW GetSubsystem<ResourceMaster>()->GetMaterial("TransparentGlow")
+
 class EdddyCursor : public LogicComponent
 {
     URHO3D_OBJECT(EdddyCursor, LogicComponent);
@@ -34,9 +37,15 @@ public:
     virtual void OnNodeSet(Node* node);
     virtual void DelayedStart();
 
+    bool IsHidden() const { return hidden_; }
+    void Hide();
+    void Show();
+    void ToggleVisibility();
+
     void UpdateSizeAndOffset();
     void SetAxisLock(std::bitset<3> lock);
     std::bitset<3> GetAxisLock() { return axisLock_; }
+    Vector3 GetLockVector() { return Vector3(axisLock_[0], axisLock_[1], axisLock_[2]); }
 
     void Step(IntVector3 step);
     void SetCoords(IntVector3 coords);
@@ -49,14 +58,16 @@ public:
 
     void HandleMouseMove();
     void HandleMapChange(StringHash eventType, VariantMap& eventData);
+
 private:
     IntVector3 coords_;
     Quaternion targetRotation_;
+    bool hidden_;
 
     Node* boxNode_;
     StaticModel* boxModel_;
     Node* blockNode_;
-    StaticModel* blockModel_;
+    Pair<StaticModel*, StaticModel*> blockModels_;
 
     std::bitset<3> axisLock_;
     std::bitset<3> previousAxisLock_;
@@ -64,6 +75,7 @@ private:
 
     void UpdateHitPlanes();
     void UpdateModel(StringHash eventType, VariantMap& eventData);
+    bool CoordsOnMap(IntVector3 coords);
 };
 
 

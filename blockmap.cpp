@@ -22,6 +22,7 @@
 #include "edddycursor.h"
 #include "gridblock.h"
 #include "editmaster.h"
+#include "blockset.h"
 
 #include "blockmap.h"
 
@@ -79,7 +80,7 @@ void BlockMap::CreateCorners()
 
         StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
         cornerModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
-        cornerModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerActive"));
+        cornerModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerInactive"));
     }
 }
 
@@ -243,7 +244,7 @@ void BlockMap::SetMapSize(int w, int h, int d)
 
 Vector3 BlockMap::GetCenter()
 {
-    return node_->GetPosition() + 0.5f * blockSize_ * mapSize_.ToVector3();
+    return node_->GetPosition() + 0.5f * blockSize_ * Vector3(mapSize_.x_, mapSize_.y_, mapSize_.z_);
 }
 
 
