@@ -24,28 +24,30 @@
 #include "block.h"
 #include "blockinstance.h"
 #include "blockmap.h"
-
+#include "blockset.h"
+#include "edddyevents.h"
 
 EditMaster::EditMaster(Context* context) : Object(context),
+    blockMaps_{},
+    currentBlockMap_{},
     currentBlockIndex_{0},
     currentBlock_{},
     currentBlockSet_{}
 {
 }
 
-void EditMaster::NewMap()
+void EditMaster::NewMap(const IntVector3& mapSize, const Vector3& blockSize)
 {
     BlockMap* newBlockMap{ MC->GetScene()->CreateChild("BlockMap")->CreateComponent<BlockMap>() };
 
-    newBlockMap->SetMapSize( 23, 5, 23 );
-    newBlockMap->SetBlockSize(Vector3(3.0f, 1.0f, 3.0f));
+    newBlockMap->SetMapSize(mapSize);
+    newBlockMap->SetBlockSize(blockSize);
     newBlockMap->Initialize();
 
     blockMaps_.Push(newBlockMap);
     SetCurrentBlockMap(newBlockMap);
 
     if (!blockSets_.Size()) {
-
         LoadBlocks();
     }
 }
@@ -69,6 +71,9 @@ bool EditMaster::LoadMap(String fileName)
 
         blockMaps_.Push(newBlockMap);
         SetCurrentBlockMap(newBlockMap);
+
+        if (!blockSets_.Size())
+            LoadBlocks();
 
         return true;
     }
@@ -106,8 +111,8 @@ void EditMaster::LoadBlocks()
 
         }
 
-        BlockSet* newBlockSet{ new BlockSet() };
-        newBlockSet->name_ = "test";
+        BlockSet* newBlockSet{ new BlockSet(context_) };
+        newBlockSet->name_ = "Resources/TestSet.xml";
 
         for (Model* model: models){
 
@@ -120,6 +125,7 @@ void EditMaster::LoadBlocks()
         }
 
         blockSets_.Push(newBlockSet);
+        SetCurrentBlockSet(newBlockSet);
     }
 }
 BlockSet* EditMaster::LoadBlockSet(String fileName)
@@ -133,7 +139,7 @@ BlockSet* EditMaster::LoadBlockSet(String fileName)
     blockSetXML->Load(file);
     XMLElement rootElem{ blockSetXML->GetRoot("blockset") };
 
-    BlockSet* newBlockSet{ new BlockSet() };
+    BlockSet* newBlockSet{ new BlockSet(context_) };
     newBlockSet->name_ = rootElem.GetAttribute("name");
 
     XMLElement blockXML{ rootElem.GetChild("block") };
@@ -174,6 +180,10 @@ void EditMaster::SaveBlockSet(BlockSet* blockSet, String fileName)
 
 void EditMaster::SetCurrentBlockMap(BlockMap* map) {
 
+    if (currentBlockMap_) {
+        currentBlockMap_->GetNode()->Remove();
+    }
+
     currentBlockMap_ = map;
 
     SetCurrentBlock(nullptr);
@@ -189,20 +199,25 @@ void EditMaster::SetCurrentBlockSet(BlockSet* blockSet)
     currentBlockSet_ = blockSet;
 }
 
-void EditMaster::SetCurrentBlock(unsigned index)
+void EditMaster::SetCurrentBlock(unsigned index, BlockSet* blockSet)
 {
-    if (currentBlockSet_){
-        index = Clamp(index, (unsigned)0, currentBlockSet_->blocks_.Size());
-    } else
+    if (!blockSet)
         return;
+    else if (currentBlockSet_ != blockSet)
+        currentBlockSet_ = blockSet;
 
-    currentBlockIndex_ = index;
+    currentBlockIndex_ = Clamp(index, (unsigned)0, currentBlockSet_->blocks_.Size());
     currentBlock_ = currentBlockSet_->blocks_[currentBlockIndex_];
 
     VariantMap eventData{};
     eventData[CurrentBlockChange::P_BLOCK] = currentBlock_;
 
     SendEvent(E_CURRENTBLOCKCHANGE, eventData);
+}
+
+void EditMaster::SetCurrentBlock(unsigned index)
+{
+    SetCurrentBlock(index, currentBlockSet_);
 }
 void EditMaster::SetCurrentBlock(Block* block)
 {
@@ -271,28 +286,27 @@ void EditMaster::PickBlock()
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
     BlockInstance* blockInstance{ GetCurrentBlockMap()->GetBlockInstance(cursor->GetCoords()) };
-    if (blockInstance && blockInstance->GetBlock()){
+    if (blockInstance && blockInstance->GetBlock()) {
+
         cursor->SetRotation(blockInstance->GetRotation());
         SetCurrentBlock(blockInstance->GetBlock());
     } else {
+
         SetCurrentBlock(nullptr);
     }
 }
 
 void EditMaster::PutBlock(IntVector3 coords, Quaternion rotation, Block* block)
 {
+
     GetCurrentBlockMap()->SetBlock(coords, rotation, block);
 }
 void EditMaster::PutBlock()
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
-    PutBlock(cursor->GetCoords(), cursor->GetTargetRotation(), currentBlock_);
-}
 
-Block* BlockSet::GetBlockById(int id) {
-    for (Block* b : blocks_) {
-        if (b->GetId() == id)
-            return b;
-    }
-    return nullptr;
+    if (!currentBlockMap_ || cursor->IsHidden())
+        return;
+
+    PutBlock(cursor->GetCoords(), cursor->GetTargetRotation(), currentBlock_);
 }

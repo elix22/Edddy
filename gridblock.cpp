@@ -169,7 +169,7 @@ void GridBlock::HandleCursorStep(StringHash eventType, VariantMap& eventData)
 
     centerNode_->SetScale(centerScale);
 
-    if (WithinLock()){
+    if (WithinLock() && !cursor->IsHidden()){
 
         if (coords_ == cursor->GetCoords()) {
             activeCenterGroup_->AddInstanceNode(centerNode_);

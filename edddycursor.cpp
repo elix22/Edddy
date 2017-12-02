@@ -49,7 +49,6 @@ void EdddyCursor::OnNodeSet(Node *node)
 { if (!node) return;
 
     blockNode_ = node_->CreateChild("PREVIEW");
-    blockModel_ = blockNode_->CreateComponent<StaticModel>();
 
     RigidBody* rigidBody_{ node_->CreateComponent<RigidBody>() };
     rigidBody_->SetKinematic(true);
@@ -65,18 +64,24 @@ void EdddyCursor::OnNodeSet(Node *node)
     boxNode_ = node_->CreateChild("BOX");
     boxModel_ = boxNode_->CreateComponent<StaticModel>();
     boxModel_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Cursor"));
-    boxModel_->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("TransparentGlow"));
+    boxModel_->SetMaterial(MAT_GLOWWIRE);
 
-    UpdateSizeAndOffset();
-//    SetCoords(IntVector3(MAP_WIDTH / 2, 0, MAP_DEPTH / 2));
+    for (bool wire : {true, false}){
+        StaticModel* blockModel{ blockNode_->CreateComponent<StaticModel>() };
+
+        if (wire) {
+            blockModels_.first_ = blockModel;
+        } else {
+            blockModels_.second_ = blockModel;
+        }
+    }
 
     SubscribeToEvent(E_CURRENTBLOCKCHANGE, URHO3D_HANDLER(EdddyCursor, UpdateModel));
     SubscribeToEvent(E_CURRENTMAPCHANGE, URHO3D_HANDLER(EdddyCursor, HandleMapChange));
-
 }
 void EdddyCursor::DelayedStart()
 {
-    MoveTo(GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetCenter());
+//    MoveTo(GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetCenter());
 //    SendEvent(E_CURSORSTEP);
 }
 void EdddyCursor::HandleMapChange(StringHash eventType, VariantMap& eventData)
@@ -84,8 +89,16 @@ void EdddyCursor::HandleMapChange(StringHash eventType, VariantMap& eventData)
 
     BlockMap* blockMap{ static_cast<BlockMap*>(eventData[CurrentMapChange::P_MAP].GetPtr()) };
 
-    UpdateSizeAndOffset();
-    MoveTo(blockMap->GetCenter());
+    if (blockMap) {
+
+        UpdateSizeAndOffset();
+        MoveTo(blockMap->GetCenter());
+        node_->SetEnabled(true);
+
+    } else {
+
+        node_->SetEnabled(false);
+    }
 }
 void EdddyCursor::UpdateModel(StringHash eventType, VariantMap& eventData)
 { (void)eventType;
@@ -97,18 +110,46 @@ void EdddyCursor::UpdateModel(StringHash eventType, VariantMap& eventData)
         Model* model{ currentBlock->GetModel() };
         if (model) {
 
-            blockModel_->SetModel(model);
-            blockModel_->SetMaterial(boxModel_->GetMaterial());
+            blockModels_.first_->SetModel(model);
+            blockModels_.first_->SetMaterial(MAT_GLOWWIRE);
+            blockModels_.second_->SetModel(model);
+            blockModels_.second_->SetMaterial(MAT_TRANSPARENTGLOW);
             if (boxNode_->IsEnabled())
                 boxNode_->SetEnabled(false);
         }
 
     } else {
 
-        blockModel_->SetModel(nullptr);
+        blockModels_.first_->SetModel(nullptr);
+        blockModels_.second_->SetModel(nullptr);
+
         if (!boxNode_->IsEnabled())
             boxNode_->SetEnabled(true);
     }
+}
+
+void EdddyCursor::Hide()
+{
+    hidden_ = true;
+    boxNode_->SetEnabled(false);
+    blockNode_->SetEnabled(false);
+
+    SendEvent(E_CURSORSTEP);
+}
+void EdddyCursor::Show()
+{
+    hidden_ = false;
+    blockNode_->SetEnabled(true);
+    if (blockModels_.first_->GetModel()) {
+        boxNode_->SetEnabled(false);
+    } else {
+        boxNode_->SetEnabled(true);
+    }
+}
+void EdddyCursor::ToggleVisibility()
+{
+    hidden_ ? Show()
+            : Hide();
 }
 
 void EdddyCursor::UpdateSizeAndOffset()
@@ -170,16 +211,41 @@ void EdddyCursor::Step(IntVector3 step)
     SetCoords(resultingCoords);
 }
 
-void EdddyCursor::SetCoords(IntVector3 coords)
+bool EdddyCursor::CoordsOnMap(IntVector3 coords)
 {
     IntVector3 mapSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetMapSize() };
-    Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
 
     if ( (coords.x_ < 0 || coords.x_ >= mapSize.x_)
       || (coords.y_ < 0 || coords.y_ >= mapSize.y_)
-      || (coords.z_ < 0 || coords.z_ >= mapSize.z_)
-      ||  coords == coords_)
+      || (coords.z_ < 0 || coords.z_ >= mapSize.z_))
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+
+}
+
+void EdddyCursor::SetCoords(IntVector3 coords)
+{
+    Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
+
+    if (!CoordsOnMap(coords)) {
+
+        if (!hidden_) {
+            Hide();
+        }
         return;
+
+    } else if (coords == coords_ && !hidden_) {
+
+        return;
+    }
+
+    if (hidden_)
+        Show();
 
     coords_ = coords;
 
@@ -202,8 +268,7 @@ void EdddyCursor::MoveTo(Vector3 position)
     SetCoords(IntVector3(
             axisLock_[0] ? coords.x_ : coords_.x_,
             axisLock_[1] ? coords.y_ : coords_.y_,
-            axisLock_[2] ? coords.z_ : coords_.z_
-                  ));
+            axisLock_[2] ? coords.z_ : coords_.z_));
 }
 
 void EdddyCursor::Rotate(bool clockWise)
@@ -221,7 +286,7 @@ void EdddyCursor::SetRotation(Quaternion rot)
 
 void EdddyCursor::HandleMouseMove()
 {
-    Ray mouseRay{ GetSubsystem<InputMaster>()->MouseRay() };
+    Ray mouseRay{ GetSubsystem<InputMaster>()->GetMouseRay() };
 
     PODVector<PhysicsRaycastResult> hitResults{};
 
@@ -229,6 +294,7 @@ void EdddyCursor::HandleMouseMove()
 
         float closest{ M_INFINITY };
         PhysicsRaycastResult closestResult{};
+
         for (PhysicsRaycastResult result: hitResults)
             if (((((axisLock_.count() == 2) != (axisLock_[1] != axisLock_[2])) && Abs(result.normal_.x_) > 0.5f)
               || (((axisLock_.count() == 2) != (axisLock_[0] != axisLock_[2])) && Abs(result.normal_.y_) > 0.5f)

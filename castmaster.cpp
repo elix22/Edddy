@@ -37,14 +37,14 @@ bool CastMaster::PhysicsRayCast(PODVector<PhysicsRaycastResult> &hitResults, con
 template <class T> T* CastMaster::RaycastToComponent(const Ray& ray)
 {
     PODVector<RayQueryResult> results;
-    RayOctreeQuery query(results, ray, RAY_TRIANGLE, 1000.0f, DRAWABLE_GEOMETRY);
+    RayOctreeQuery query{ results, ray, RAY_TRIANGLE, 1000.0f, DRAWABLE_GEOMETRY };
     MC->GetScene()->GetComponent<Octree>()->Raycast(query);
 
-    for (RayQueryResult r : results){
+    for (RayQueryResult r : results) {
 
-            if (r.node_->HasComponent<T>()){
-                return r.node_->GetComponent<T>();
-            }
+        if (r.node_->HasComponent<T>()) {
+            return r.node_->GetComponent<T>();
+        }
     }
     return nullptr;
 }

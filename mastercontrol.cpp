@@ -24,6 +24,7 @@
 #include "castmaster.h"
 #include "effectmaster.h"
 #include "editmaster.h"
+#include "guimaster.h"
 
 #include "edddycam.h"
 #include "edddycursor.h"
@@ -32,6 +33,8 @@
 #include "block.h"
 #include "gridblock.h"
 #include "freeblock.h"
+
+#include "gui3d.h"
 
 URHO3D_DEFINE_APPLICATION_MAIN(MasterControl);
 
@@ -50,7 +53,7 @@ void MasterControl::Setup()
     engineParameters_[EP_WINDOW_TITLE] = "Edddy";
     engineParameters_[EP_WINDOW_ICON] = "icon.png";
     engineParameters_[EP_LOG_NAME] = GetSubsystem<FileSystem>()->GetAppPreferencesDir("urho3d", "logs")+"edddy.log";
-    engineParameters_[EP_RESOURCE_PATHS] = "Data;CoreData;Resources;";
+    engineParameters_[EP_RESOURCE_PATHS] = "Resources;";
 
 //    engineParameters_[EP_FULL_SCREEN] = false;
 //    engineParameters_[EP_WINDOW_HEIGHT] = 1280;
@@ -60,10 +63,9 @@ void MasterControl::Setup()
 
 void MasterControl::Start()
 {
-    ENGINE->SetMaxFps(80);
+    ENGINE->SetMaxFps(50);
     SetRandomSeed(TIME->GetSystemTime());
     CACHE->SetAutoReloadResources(true);
-    LoadBlocks();
 
     context_->RegisterSubsystem(this);
     context_->RegisterSubsystem(new ResourceMaster(context_));
@@ -72,54 +74,28 @@ void MasterControl::Start()
     context_->RegisterSubsystem(new EffectMaster(context_));
     context_->RegisterSubsystem(new EditMaster(context_));
 
-    defaultStyle_ = CACHE->GetResource<XMLFile>("UI/DefaultStyle.xml");
+    LoadBlocks();
+
     CreateConsoleAndDebugHud();
     CreateScene();
-    CreateUI();
     SubscribeToEvents();
+
+    context_->RegisterSubsystem(new GUIMaster(context_));
 }
+
 void MasterControl::LoadBlocks()
 {
-    CACHE->GetResource<Model>("Blocks/CliffLowBend.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffBottomBend.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffBottomCorner.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffBottomEdge.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffBottomHillBendLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffBottomHillBendRight.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffBottomHillLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffBottomHillRight.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffLowBend.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffLowCorner.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffLowEdge.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffMiddleBend.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffMiddleCorner.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffMiddleEdge.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffMiddleTopBendLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffMiddleTopBendRight.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffMiddleTopLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffMiddleTopRight.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffToHillLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffToHillRight.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffTopBend.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffTopCorner.mdl");
-    CACHE->GetResource<Model>("Blocks/CliffTopEdge.mdl");
-    CACHE->GetResource<Model>("Blocks/Flat.mdl");
-    CACHE->GetResource<Model>("Blocks/HillBend.mdl");
-    CACHE->GetResource<Model>("Blocks/HillCorner.mdl");
-    CACHE->GetResource<Model>("Blocks/HillEdge.mdl");
-    CACHE->GetResource<Model>("Blocks/RampBottomCenter.mdl");
-    CACHE->GetResource<Model>("Blocks/RampBottomLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/RampBottomRight.mdl");
-    CACHE->GetResource<Model>("Blocks/RampMiddleCenter.mdl");
-    CACHE->GetResource<Model>("Blocks/RampMiddleLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/RampMiddleRight.mdl");
-    CACHE->GetResource<Model>("Blocks/RampTopCenter.mdl");
-    CACHE->GetResource<Model>("Blocks/RampTopLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/RampTopRight.mdl");
-    CACHE->GetResource<Model>("Blocks/ToRampMiddleLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/ToRampMiddleRight.mdl");
-    CACHE->GetResource<Model>("Blocks/ToRampTopLeft.mdl");
-    CACHE->GetResource<Model>("Blocks/ToRampTopRight.mdl");
+//    GetSubsystem<ResourceMaster>()->SetResourcePath("/home/frode/Creations/Games/OGTatt/Resources");
+
+    String blockPath{ GetSubsystem<ResourceMaster>()->GetResourcePath() + "Blocks" };
+
+    Vector<String> blocksNames{};
+    FILES->ScanDir(blocksNames, blockPath, "mdl", SCAN_FILES, true);
+
+    for (String blockName : blocksNames) {
+
+        CACHE->GetResource<Model>(blockPath + blockName);
+    }
 }
 void MasterControl::Stop()
 {
@@ -127,8 +103,7 @@ void MasterControl::Stop()
 }
 void MasterControl::Exit()
 {
-    GetSubsystem<EditMaster>()->SaveMap(GetSubsystem<EditMaster>()->GetCurrentBlockMap(), BLOCKMAP);
-
+    //Save settings
     engine_->Exit();
 }
 
@@ -146,17 +121,6 @@ void MasterControl::CreateConsoleAndDebugHud()
 
     DebugHud* debugHud{ engine_->CreateDebugHud() };
     debugHud->SetDefaultStyle(defaultStyle_);
-}
-
-void MasterControl::CreateUI()
-{
-//    cache_ = GetSubsystem<ResourceCache>();
-//    UI* ui = GetSubsystem<UI>();
-
-//    world_.cursor.uiCursor = new Cursor(context_);
-//    world_.cursor.uiCursor->SetVisible(false);
-//    ui->SetCursor(world_.cursor.uiCursor);
-//    world_.cursor.uiCursor->SetPosition(graphics_->GetWidth()/2, graphics_->GetHeight()/2);
 }
 
 void MasterControl::CreateScene()
@@ -189,20 +153,23 @@ void MasterControl::CreateScene()
     light->SetShadowBias(BiasParameters(0.000023f, 0.5f));
     light->SetShadowCascade(CascadeParameters(7.0f, 23.0f, 42.0f, 500.0f, 0.8f));
 
+    RENDERER->SetNumViewports(2);
     //Create camera
     Node* camNode{ scene_->CreateChild("Camera") };
     camera_ = camNode->CreateComponent<EdddyCam>();
+    //Create 3D GUI
+    context_->RegisterSubsystem(new GUI3D(context_));
+
+    //Create the cursor
+    Node* cursorNode{ scene_->CreateChild("Cursor") };
+    EdddyCursor* cursor{ cursorNode->CreateComponent<EdddyCursor>() };
+    GetSubsystem<InputMaster>()->SetCursor(cursor);
 
     //Create a map
 //    Node* mapNode{ scene_->CreateChild("Map") };
 //    blockMap_ = mapNode->CreateComponent<BlockMap>();
     if (!GetSubsystem<EditMaster>()->LoadMap(BLOCKMAP))
         GetSubsystem<EditMaster>()->NewMap();
-
-    //Create the cursor
-    Node* cursorNode{ scene_->CreateChild("Cursor") };
-    EdddyCursor* cursor{ cursorNode->CreateComponent<EdddyCursor>() };
-    GetSubsystem<InputMaster>()->SetCursor(cursor);
 
 //    GetSubsystem<EditMaster>()->SaveBlockSet();
 }

@@ -23,6 +23,7 @@
 #include <Urho3D/Urho3D.h>
 #include "luckey.h"
 
+
 URHO3D_EVENT(E_CURRENTBLOCKCHANGE, CurrentBlockChange){
     URHO3D_PARAM(P_BLOCK, Block*); // Block pointer
 }
@@ -34,34 +35,39 @@ URHO3D_EVENT(E_CURRENTMAPCHANGE, CurrentMapChange){
 #define BLOCKMAP "Resources/TestMap.xml"
 
 class Block;
+class BlockSet;
+class BlockInstance;
 
-struct BlockSet{
-    String name_;
-    Vector<Block*> blocks_;
-    Block* GetBlockById(int id);
+struct BlockChange{
+    BlockInstance* instance_;
+    Pair<Block*, Block*> blockChange_;
+    Pair<Quaternion, Quaternion> blockRotation_;
 };
+typedef Vector<BlockChange> UndoStep;
+
 
 class EditMaster : public Object
 {
     URHO3D_OBJECT(EditMaster, Object);
 public:
     EditMaster(Context* context);
-    void NewMap();
+    void NewMap(const IntVector3& mapSize = IntVector3(23, 5, 23), const Vector3& blockSize = Vector3(3.0f, 1.0f, 3.0f));
     bool LoadMap(String fileName);
     void SaveMap(BlockMap *blockMap, String fileName);
 
     void LoadBlocks();
     BlockSet* LoadBlockSet(String fileName);
-    void SaveBlockSet(BlockSet *blockSet, String fileName);
+    void SaveBlockSet(BlockSet* blockSet, String fileName);
 
-    BlockMap* GetCurrentBlockMap() const { return currentBlockMap_; }
     void SetCurrentBlockMap(BlockMap* map);
+    BlockMap* GetCurrentBlockMap() const { return currentBlockMap_; }
 
     void SetCurrentBlockSet(BlockSet* blockSet);
     const Vector<BlockSet*>& GetBlockSets() const { return blockSets_; }
 
     void NextBlock();
     void PreviousBlock();
+    void SetCurrentBlock(unsigned index, BlockSet* blockSet);
     void SetCurrentBlock(unsigned index);
     void SetCurrentBlock(Block* block);
 
@@ -78,6 +84,9 @@ private:
     unsigned currentBlockIndex_;
     Block* currentBlock_;
     BlockSet* currentBlockSet_;
+
+    Vector<UndoStep> history_;
+    unsigned historyIndex_;
 };
 
 #endif // EDITMASTER_H

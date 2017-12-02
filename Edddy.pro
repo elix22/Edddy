@@ -33,7 +33,10 @@ SOURCES += \
     block.cpp \
     edddycursor.cpp \
     editmaster.cpp \
-    intvector3.cpp
+    intvector3.cpp \
+    guimaster.cpp \
+    blockset.cpp \
+    gui3d.cpp
 
 HEADERS += \
     luckey.h \
@@ -51,4 +54,7 @@ HEADERS += \
     block.h \
     edddycursor.h \
     intvector3.h \
-    editmaster.h
+    editmaster.h \
+    guimaster.h \
+    blockset.h \
+    gui3d.h

@@ -22,7 +22,6 @@
 
 #include <Urho3D/Urho3D.h>
 
-#include "intvector3.h"
 #include "blockinstance.h"
 
 class GridBlock : public BlockInstance

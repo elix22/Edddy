@@ -25,11 +25,11 @@
 
 class BlockSet;
 
-class Block : public Object
+class Block : public Serializable
 {
     friend class EditMaster;
 
-    URHO3D_OBJECT(Block, Object);
+    URHO3D_OBJECT(Block, Serializable);
 public:
     Block(Context* context);
     static void RegisterAttributes(Context *context);
@@ -39,8 +39,8 @@ public:
     void SetMaterial(Material* material);
 
     int GetId() const { return id_; }
-    Model* GetModel() const { return model_; }
-    Material* GetMaterial() const { return material_; }
+    Model* GetModel() const;
+    Material* GetMaterial() const;
 
     BlockSet* GetBlockSet();
 
@@ -48,8 +48,8 @@ public:
 private:
     unsigned id_;
     String name_;
-    Model* model_;
-    Material* material_;
+    String model_;
+    String material_;
 //    void MatchMaterial() {}
 };
 

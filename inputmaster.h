@@ -41,7 +41,6 @@ typedef Vector<InputAction> InputActions;
 class EdddyCursor;
 
 #define ACTION_INTERVAL 0.16f
-#define WHEEL_THRESHOLD 5
 
 class InputMaster : public Object
 {
@@ -52,10 +51,11 @@ public:
     void SetCursor(EdddyCursor* cursor) { cursor_ = cursor; }
     EdddyCursor* GetCursor() const { return cursor_; }
     bool CheckActionable(InputAction action, const InputActions& inputActions, bool reset = false);
-    Ray MouseRay();
+    Ray GetMouseRay();
+
 private:
+    Ray mouseRay_;
     EdddyCursor* cursor_;
-    Vector2 mousePos_;
     int wheelStep_;
 
     HashMap<int, InputAction> keyBindings_;

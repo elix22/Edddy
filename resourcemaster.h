@@ -28,8 +28,12 @@ class ResourceMaster : public Object
     URHO3D_OBJECT(ResourceMaster, Object);
 public:
     ResourceMaster(Context* context);
-    Model*GetModel(String model);
-    Material*GetMaterial(String material);
+    Model* GetModel(String model);
+    Material* GetMaterial(String material);
+    String GetResourcePath() const { return resourcePath_; }
+    String SetResourcePath(const String& path) { resourcePath_ = path; }
+private:
+    String resourcePath_;
 };
 
 #endif // RESOURCEMASTER_H
