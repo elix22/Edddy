@@ -178,7 +178,10 @@ void EditMaster::SaveBlockSet(BlockSet* blockSet, String fileName)
     file.Close();
 }
 
-void EditMaster::SetCurrentBlockMap(BlockMap* map) {
+void EditMaster::SetCurrentBlockMap(BlockMap* map)
+{
+    if (!map)
+        return;
 
     if (currentBlockMap_) {
         currentBlockMap_->GetNode()->Remove();
