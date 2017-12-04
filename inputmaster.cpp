@@ -89,24 +89,24 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
 
         if (INPUT->GetKeyDown(KEY_CTRL)) {
 
-            if (wheel < 0)
-                activeActions.Push(ACTION_ROTATE_CW);
             if (wheel > 0)
+                activeActions.Push(ACTION_ROTATE_CW);
+            if (wheel < 0)
                 activeActions.Push(ACTION_ROTATE_CCW);
 
         } else if (INPUT->GetKeyDown(KEY_ALT)) {
 
-            if (wheel < 0)
-                activeActions.Push(ACTION_PREVIOUS_BLOCK);
             if (wheel > 0)
                 activeActions.Push(ACTION_NEXT_BLOCK);
+            if (wheel < 0)
+                activeActions.Push(ACTION_PREVIOUS_BLOCK);
 
         } else {
 
-            if (wheel < 0)
-                activeActions.Push(ACTION_BACK);
             if (wheel > 0)
                 activeActions.Push(ACTION_FORWARD);
+            if (wheel < 0)
+                activeActions.Push(ACTION_BACK);
         }
     }
 

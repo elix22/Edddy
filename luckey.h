@@ -92,7 +92,6 @@
 
 #include <initializer_list>
 #include <bitset>
-//#include "intvector3.h"
 #include "mastercontrol.h"
 
 #define FILES GetSubsystem<FileSystem>()
