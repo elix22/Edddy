@@ -10,14 +10,19 @@ GUIMaster::GUIMaster(Context* context) : Object(context),
 {
     UI* ui{ GetSubsystem<UI>() };
     uiRoot_ = ui->GetRoot();
+    uiRoot_->SetDefaultStyle(defaultStyle_);
 
+    CreateMenuBar();
     CreateNewMapWindow();
+}
+
+void GUIMaster::CreateMenuBar()
+{
+
 }
 
 void GUIMaster::CreateNewMapWindow()
 {
-    uiRoot_->SetDefaultStyle(defaultStyle_);
-
     newMapWindow_ = new Window(context_);
     newMapWindow_->SetSize(400, 400);
     newMapWindow_->SetMinSize(100, 50);
@@ -74,29 +79,26 @@ void GUIMaster::CreateNewMapWindow()
             Text* label{ new Text(context_) };
             label->SetText(axisString);
             label->SetVerticalAlignment(VA_CENTER);
-            label->SetTextAlignment(HA_RIGHT);
             subRow->AddChild(label);
 
-            LineEdit* intEdit{ new LineEdit(context_) };
-            intEdit->SetName((i == 0 ? "Map" : "Block") + axisString);
-            intEdit->SetText(i == 0 ? "10" : "1.0");
-            intEdit->SetMinSize(IntVector2(32, 32));
-            intEdit->SetMaxSize(IntVector2(32, 32));
-            intEdit->SetChildOffset(IntVector2(8, 0));
-            Text* lineEditText{ intEdit->GetTextElement() };
-            lineEditText->SetTextAlignment(HA_RIGHT);
-//            lineEditText->SetHorizontalAlignment(HA_RIGHT);
-            input_[intEdit->GetName()] = lineEditText;
+            LineEdit* numberEdit{ new LineEdit(context_) };
+            numberEdit->SetName((i == 0 ? "Map" : "Block") + axisString);
+            numberEdit->SetText(i == 0 ? "10" : "1.0");
+            numberEdit->SetMinSize(IntVector2(48, 32));
+            numberEdit->SetMaxSize(IntVector2(48, 32));
+            numberEdit->SetChildOffset(IntVector2(8, 0));
+            Text* lineEditText{ numberEdit->GetTextElement() };
+            input_[numberEdit->GetName()] = lineEditText;
 
             if (i == 0)
-                SubscribeToEvent(intEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanIntInput));
+                SubscribeToEvent(numberEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanIntInput));
             else
-                SubscribeToEvent(intEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanFloatInput));
+                SubscribeToEvent(numberEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanFloatInput));
 
-            subRow->AddChild(intEdit);
+            subRow->AddChild(numberEdit);
             inputRow->AddChild(subRow);
 
-            intEdit->SetStyleAuto();
+            numberEdit->SetStyleAuto();
             label->SetStyleAuto();
         }
         rowLabel->SetStyleAuto();
@@ -189,10 +191,12 @@ void GUIMaster::CleanIntInput(StringHash eventType, VariantMap& eventData)
 
     String text{ lineEdit->GetText() };
     String cleanText{};
+
     for (unsigned i{0}; i < text.Length(); ++i) {
+
         char c{ text.At(i) };
 
-        if (c < 10) {
+        if (c >= 48 && c <= 57) {
             cleanText.Append(c);
         }
     }
@@ -209,15 +213,17 @@ void GUIMaster::CleanFloatInput(StringHash eventType, VariantMap& eventData)
 
     String text{ lineEdit->GetText() };
     String cleanText{};
+
     for (unsigned i{0}; i < text.Length(); ++i) {
+
         bool foundStop{ false };
         char c{ text.At(i) };
 
-        if (c < 10) {
+        if (c >= 48 && c <= 57) {
 
             cleanText.Append(c);
 
-        } else  if (!foundStop && c == '.') {
+        } else if (!foundStop && c == '.') {
 
             cleanText.Append(c);
             foundStop = true;

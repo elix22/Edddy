@@ -28,6 +28,7 @@ private:
     SharedPtr<UIElement> uiRoot_;
     LineEdit* lineEdit_;
     HashMap<String, Text*> input_;
+    void CreateMenuBar();
 };
 
 #endif // GUIMASTER_H

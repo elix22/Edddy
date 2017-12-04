@@ -58,7 +58,7 @@ GUI3D::GUI3D(Context* context) : Object(context)
 
         Node* toolNode{ guiScene_->CreateChild(toolName) };
         toolNode->AddTag("Tool");
-        toolNode->SetPosition(Vector3(-5.5f + i * 0.75f, -4.0f, 0.0f));
+        toolNode->SetPosition(Vector3(-2.7f * static_cast<float>(GRAPHICS->GetWidth())/GRAPHICS->GetHeight() + i * 0.75f, -4.0f, 0.0f));
         StaticModel* toolModel{ toolNode->CreateComponent<StaticModel>() };
         toolModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel(toolName));
         toolModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("VCol"));

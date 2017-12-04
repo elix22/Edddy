@@ -55,7 +55,7 @@ void MasterControl::Setup()
     engineParameters_[EP_LOG_NAME] = GetSubsystem<FileSystem>()->GetAppPreferencesDir("urho3d", "logs")+"edddy.log";
     engineParameters_[EP_RESOURCE_PATHS] = "Resources;";
 
-//    engineParameters_[EP_FULL_SCREEN] = false;
+    engineParameters_[EP_FULL_SCREEN] = false;
 //    engineParameters_[EP_WINDOW_HEIGHT] = 1280;
 //    engineParameters_[EP_WINDOW_WIDTH] = 1024;
 }
@@ -86,8 +86,7 @@ void MasterControl::Start()
 void MasterControl::LoadBlocks()
 {
 //    GetSubsystem<ResourceMaster>()->SetResourcePath("/home/frode/Creations/Games/OGTatt/Resources");
-
-    String blockPath{ GetSubsystem<ResourceMaster>()->GetResourcePath() + "Blocks" };
+    String blockPath{ GetSubsystem<ResourceMaster>()->GetResourcePath() + "Blocks" }; ///Should be relative to map path
 
     Vector<String> blocksNames{};
     FILES->ScanDir(blocksNames, blockPath, "mdl", SCAN_FILES, true);
