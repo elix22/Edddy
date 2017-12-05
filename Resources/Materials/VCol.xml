@@ -5,5 +5,5 @@
 	<parameter name="VOffset" value="0 1 0 0" />
 	<parameter name="MatDiffColor" value="1 1 1 1" />
 	<parameter name="MatEmissiveColor" value="0 0 0" />
-	<parameter name="MatSpecColor" value="0.23 0.23 0.23 6" />
+	<parameter name="MatSpecColor" value="0.05 0.05 0.05 3" />
 </material>

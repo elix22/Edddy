@@ -26,8 +26,10 @@
 
 using namespace Urho3D;
 
-#define PITCH_MAX 85.0f
-#define PITCH_MIN -85.0f
+#define PITCH_MAX 90.0f
+#define PITCH_MIN -90.0f
+
+enum MoveType { MT_ROTATE, MT_PAN, MT_FOV };
 
 class EdddyCam : public LogicComponent
 {
@@ -45,14 +47,17 @@ public:
     Vector3 GetPosition() const { return node_->GetPosition(); }
     float GetFov() const { return camera_->GetFov(); }
     Ray GetScreenRay(float x, float y) const { return camera_->GetScreenRay(x, y); }
-    void Pan(Vector2 pan);
+    void Move(Vector3 movement, MoveType type = MT_ROTATE);
+    void Move(IntVector3 movement, MoveType type = MT_ROTATE);
+    void ToggleOrthogaphic();
+
 private:
     SharedPtr<Camera> camera_;
     SharedPtr<Viewport> viewport_;
     SharedPtr<RenderPath> effectRenderPath_;
 
     void SetupViewport();
-    void ClampPitch();
+    void ClampPitch(float& pitchDelta);
 };
 
 #endif // EDDDYCAM_H

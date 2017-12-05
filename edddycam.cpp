@@ -79,8 +79,15 @@ void EdddyCam::HandleMapChange(StringHash eventType, VariantMap& eventData)
                        + blockMap->GetCenter());
 }
 
+void EdddyCam::ToggleOrthogaphic()
+{
+    camera_->SetOrthographic(!camera_->IsOrthographic());
+}
+
 void EdddyCam::Update(float timeStep)
 {
+    ///About to be replaced
+
     if (!INPUT->GetMouseButtonDown(2)
      && !GetSubsystem<UI>()->GetFocusElement()
      && GetSubsystem<EditMaster>()->GetCurrentBlockMap()) {
@@ -90,20 +97,21 @@ void EdddyCam::Update(float timeStep)
         float rotationSpeed{ 23.0f * factor };
         Vector3 cursorPosition{ GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetPosition() };
 
+        //Pan
         node_->Translate( timeStep * translationSpeed *
                           ((node_->GetDirection() * Vector3(1.0f, 0.0f, 1.0f)).Normalized() * (INPUT->GetKeyDown(KEY_W) - INPUT->GetKeyDown(KEY_S)) +
                            node_->GetRight() * (INPUT->GetKeyDown(KEY_D) - INPUT->GetKeyDown(KEY_A)) +
-                           Vector3::UP * (INPUT->GetKeyDown(KEY_Q) - INPUT->GetKeyDown(KEY_E))), TS_WORLD);
+                           Vector3::UP * (INPUT->GetKeyDown(KEY_E) - INPUT->GetKeyDown(KEY_Q))), TS_WORLD);
 
+
+        //Zoom
         bool ortho{ camera_->IsOrthographic() };
-
         if (!ortho)
             node_->Translate(timeStep * translationSpeed * node_->GetDirection() * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)), TS_WORLD);
         else
-            camera_->SetOrthoSize(camera_->GetOrthoSize() - timeStep * translationSpeed * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)));
+            camera_->SetOrthoSize(Max(1.0f, camera_->GetOrthoSize() - timeStep * translationSpeed * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS))));
 
-        camera_->SetOrthographic(INPUT->GetKeyPress(KEY_KP_5) ? !ortho
-                                                             :  ortho);
+        //Rotate
         node_->RotateAround( cursorPosition,
                              Quaternion(0.0f,
                                         (INPUT->GetKeyDown(KEY_KP_4) - INPUT->GetKeyDown(KEY_KP_6)) * rotationSpeed * timeStep,
@@ -114,71 +122,90 @@ void EdddyCam::Update(float timeStep)
                                         0.0f), TS_LOCAL);
     }
 
-    ClampPitch();
 }
 
-void EdddyCam::Pan(Vector2 pan)
+void EdddyCam::Move(Vector3 movement, MoveType type)
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
     Vector3 cursorPosition{ cursor->GetNode()->GetPosition() };
     float cursorDistance{ LucKey::Distance(GetPosition(), cursorPosition) };
 
-    float panSpeed{ 1.5f + 1.8f * cursorDistance * (0.01f * camera_->GetFov()) };
-    float zoomSpeed{ 13.0f + 5.0f * cursorDistance };
+    bool ortho{ camera_->IsOrthographic() };
+    float panSpeed{ 1.5f + (ortho ? (camera_->GetOrthoSize() * 1.3f) : (cursorDistance * camera_->GetFov() * 0.018f)) };
     float rotationSpeed{ 235.0f };
 
-    bool ortho{ camera_->IsOrthographic() };
-//    INPUT->SetMouseMode(MM_WRAP);
+    switch (type) {
+    case MT_FOV: {
 
-    //Change field of view
-    if (INPUT->GetKeyDown(KEY_CTRL) && INPUT->GetKeyDown(KEY_SHIFT) && !ortho) {
+        if (!ortho)
+            camera_->SetFov(Clamp(camera_->GetFov() + 23.0f * movement.y_, 5.0f, 120.0f));
+        else
+            node_->Translate(Vector3::BACK * movement.y_ * panSpeed);
 
-        camera_->SetFov(Clamp(camera_->GetFov() + 23.0f * (pan.x_ - pan.y_), 5.0f, 120.0f));
+    } break;
+    case MT_PAN: {
 
-    } else if (INPUT->GetKeyDown(KEY_SHIFT)) {
-
-        pan *= panSpeed;
+        movement *= panSpeed;
 
         if (!ortho) {
-            node_->Translate(node_->GetRight() * -pan.x_ + node_->GetUp() * pan.y_, TS_WORLD);
+
+            node_->Translate(node_->GetRight() * -movement.x_ +
+                             node_->GetUp() * movement.y_ +
+                             node_->GetDirection() * movement.z_, TS_WORLD);
+
         } else {
-            node_->Translate(((cursor->GetLockVector() * node_->GetRight()).Normalized() * -pan.x_
-                            + (cursor->GetLockVector() * node_->GetUp()).Normalized() * pan.y_)
-                             * Sqrt(camera_->GetOrthoSize()) * 0.25f, TS_WORLD);
+
+            camera_->SetOrthoSize(Max(1.0f, camera_->GetOrthoSize() + movement.z_ * -5.0f));
+            Vector3 lockVector{ cursor->GetLockVector() };
+
+            if (lockVector.Length() != 1.0f) { ///Needs more cases or generalisation
+
+                if (lockVector.y_ == 0.0f)
+                    movement.y_ /= Abs(node_->GetDirection().DotProduct(Vector3::UP) * M_SQRT2);
+//                else
+//                    movement.x_ /= Abs(node_->GetDirection().DotProduct(Vector3::FORWARD) * M_SQRT2);
+            }
+
+            node_->Translate((lockVector * node_->GetRight()).Normalized() * -movement.x_
+                           + (lockVector * node_->GetUp()).Normalized()    *  movement.y_, TS_WORLD);
 
         }
 
-    } else if (INPUT->GetKeyDown(KEY_CTRL)) {
+    } break;
+    default: case MT_ROTATE: {
 
-        if (!ortho) {
-            node_->Translate(zoomSpeed * -node_->GetDirection() * pan.y_, TS_WORLD);
-        } else {
-            camera_->SetOrthoSize(camera_->GetOrthoSize() + zoomSpeed * pan.y_);
-        }
+        float pitchDelta{ movement.y_ * rotationSpeed };
+        ClampPitch(pitchDelta);
 
+        node_->RotateAround(cursorPosition,
+                            Quaternion(movement.x_ * rotationSpeed, Vector3::UP) *
+                            Quaternion(pitchDelta, node_->GetRight()), TS_WORLD);
+    }
+    }
+}
+void EdddyCam::Move(IntVector3 movement, MoveType type)
+{
+    if (type == MT_PAN) {
+
+        Move(node_->GetRight() * movement.x_ +
+             Vector3::UP * movement.y_ +
+             (node_->GetDirection() * Vector3(1.0f, 0.0f, 1.0f)).Normalized() * movement.z_);
     } else {
-        node_->RotateAround( cursorPosition,
-                             Quaternion(0.0f,
-                                        pan.x_ * rotationSpeed,
-                                        0.0f), TS_WORLD);
-        node_->RotateAround( node_->GetRotation().Inverse() * (cursorPosition - node_->GetPosition()),
-                             Quaternion(pan.y_ * rotationSpeed,
-                                        0.0f,
-                                        0.0f), TS_LOCAL);
+
+        Move(Vector3(movement), type);
     }
 }
 
-void EdddyCam::ClampPitch()
+void EdddyCam::ClampPitch(float& pitchDelta)
 {
+    float resultingPitch{ node_->GetRotation().PitchAngle() + pitchDelta };
 
-    Vector3 cursorPosition{ GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetPosition() };
+    if (resultingPitch > PITCH_MAX) {
 
-    if (GetPitch() > PITCH_MAX)
-        node_->RotateAround(cursorPosition,
-                                Quaternion(PITCH_MAX - GetPitch(), node_->GetRight()),
-                                TS_WORLD);
-    else if (GetPitch() < PITCH_MIN)
-        node_->RotateAround(cursorPosition,
-                                Quaternion(PITCH_MIN - GetPitch(), node_->GetRight()),
-                                TS_WORLD);
+        pitchDelta -= resultingPitch - PITCH_MAX;
+
+    } else if (resultingPitch < PITCH_MIN) {
+
+        pitchDelta -= resultingPitch - PITCH_MIN;
+    }
 }

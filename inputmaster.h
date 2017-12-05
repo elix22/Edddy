@@ -65,6 +65,9 @@ private:
     HashSet<int> pressedKeys_;
     HashSet<int> pressedMouseButtons_;
     HashSet<int> pressedJoystickButtons_;
+    bool shiftDown_;
+    bool ctrlDown_;
+    bool altDown_;
 
     Vector2 leftStickPosition_;
     Vector2 rightStickPosition_;
@@ -84,9 +87,9 @@ private:
     void HandleCursorStep(StringHash eventType, VariantMap& eventData);
 
     void HandleActions(const InputActions &actions, float timeStep);
-    IntVector3 GetMoveFromActions(const InputActions& actions);
+    IntVector3 GetStepFromActions(const InputActions& actions);
     IntVector3 CorrectForCameraYaw(IntVector3 intVec3);
-    void SyncMousePosition();
+    void UpdateModifierKeys();
 };
 
 #endif // INPUTMASTER_H
