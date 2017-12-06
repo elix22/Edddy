@@ -146,6 +146,8 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
     }
 
     HandleActions(activeActions, timeStep);
+
+    KeyCameraMovement();
 }
 
 void InputMaster::HandleActions(const InputActions& actions, float timeStep)
@@ -226,6 +228,18 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
 
             actionTime_[a] = 0.0f;
     }
+}
+
+void InputMaster::KeyCameraMovement()
+{
+    EdddyCam* camera{ MC->GetCamera() };
+//    camera->Move(IntVector3(INPUT->GetKeyDown(KEY_D) - INPUT->GetKeyDown(KEY_A),
+//                                     INPUT->GetKeyDown(KEY_E) - INPUT->GetKeyDown(KEY_Q),
+//                                     INPUT->GetKeyDown(KEY_S) - INPUT->GetKeyDown(KEY_W)), MT_PAN);
+
+    camera->Move((0.02f + 0.03f * shiftDown_) * Vector3::FORWARD * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)), MT_PAN);
+    camera->Move((0.01f + 0.02f * shiftDown_) * Vector3(INPUT->GetKeyDown(KEY_KP_4) - INPUT->GetKeyDown(KEY_KP_6),
+                                                        INPUT->GetKeyDown(KEY_KP_8) - INPUT->GetKeyDown(KEY_KP_2)), MT_ROTATE);
 }
 
 IntVector3 InputMaster::GetStepFromActions(const InputActions& actions)

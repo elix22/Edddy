@@ -56,6 +56,7 @@ void MasterControl::Setup()
     engineParameters_[EP_RESOURCE_PATHS] = "Resources;";
 
     engineParameters_[EP_FULL_SCREEN] = false;
+    engineParameters_[EP_WINDOW_RESIZABLE] = true;
 //    engineParameters_[EP_WINDOW_HEIGHT] = 1280;
 //    engineParameters_[EP_WINDOW_WIDTH] = 1024;
 }

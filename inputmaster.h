@@ -90,6 +90,7 @@ private:
     IntVector3 GetStepFromActions(const InputActions& actions);
     IntVector3 CorrectForCameraYaw(IntVector3 intVec3);
     void UpdateModifierKeys();
+    void KeyCameraMovement();
 };
 
 #endif // INPUTMASTER_H

@@ -88,39 +88,39 @@ void EdddyCam::Update(float timeStep)
 {
     ///About to be replaced
 
-    if (!INPUT->GetMouseButtonDown(2)
-     && !GetSubsystem<UI>()->GetFocusElement()
-     && GetSubsystem<EditMaster>()->GetCurrentBlockMap()) {
+//    if (!INPUT->GetMouseButtonDown(2)
+//     && !GetSubsystem<UI>()->GetFocusElement()
+//     && GetSubsystem<EditMaster>()->GetCurrentBlockMap()) {
 
-        float factor{ (2.0f + 3.0f * INPUT->GetKeyDown(KEY_SHIFT)) };
-        float translationSpeed{ factor * factor};
-        float rotationSpeed{ 23.0f * factor };
-        Vector3 cursorPosition{ GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetPosition() };
+//        float factor{ (2.0f + 3.0f * INPUT->GetKeyDown(KEY_SHIFT)) };
+//        float translationSpeed{ factor * factor};
+//        float rotationSpeed{ 23.0f * factor };
+//        Vector3 cursorPosition{ GetSubsystem<InputMaster>()->GetCursor()->GetNode()->GetPosition() };
 
-        //Pan
-        node_->Translate( timeStep * translationSpeed *
-                          ((node_->GetDirection() * Vector3(1.0f, 0.0f, 1.0f)).Normalized() * (INPUT->GetKeyDown(KEY_W) - INPUT->GetKeyDown(KEY_S)) +
-                           node_->GetRight() * (INPUT->GetKeyDown(KEY_D) - INPUT->GetKeyDown(KEY_A)) +
-                           Vector3::UP * (INPUT->GetKeyDown(KEY_E) - INPUT->GetKeyDown(KEY_Q))), TS_WORLD);
+//        //Pan
+//        node_->Translate( timeStep * translationSpeed *
+//                          ((node_->GetDirection() * Vector3(1.0f, 0.0f, 1.0f)).Normalized() * (INPUT->GetKeyDown(KEY_W) - INPUT->GetKeyDown(KEY_S)) +
+//                           node_->GetRight() * (INPUT->GetKeyDown(KEY_D) - INPUT->GetKeyDown(KEY_A)) +
+//                           Vector3::UP * (INPUT->GetKeyDown(KEY_E) - INPUT->GetKeyDown(KEY_Q))), TS_WORLD);
 
 
-        //Zoom
-        bool ortho{ camera_->IsOrthographic() };
-        if (!ortho)
-            node_->Translate(timeStep * translationSpeed * node_->GetDirection() * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)), TS_WORLD);
-        else
-            camera_->SetOrthoSize(Max(1.0f, camera_->GetOrthoSize() - timeStep * translationSpeed * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS))));
+//        //Zoom
+//        bool ortho{ camera_->IsOrthographic() };
+//        if (!ortho)
+//            node_->Translate(timeStep * translationSpeed * node_->GetDirection() * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)), TS_WORLD);
+//        else
+//            camera_->SetOrthoSize(Max(1.0f, camera_->GetOrthoSize() - timeStep * translationSpeed * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS))));
 
-        //Rotate
-        node_->RotateAround( cursorPosition,
-                             Quaternion(0.0f,
-                                        (INPUT->GetKeyDown(KEY_KP_4) - INPUT->GetKeyDown(KEY_KP_6)) * rotationSpeed * timeStep,
-                                        0.0f), TS_WORLD);
-        node_->RotateAround( node_->GetRotation().Inverse() * (cursorPosition - node_->GetPosition()),
-                             Quaternion((INPUT->GetKeyDown(KEY_KP_8) - INPUT->GetKeyDown(KEY_KP_2)) * rotationSpeed * timeStep,
-                                        0.0f,
-                                        0.0f), TS_LOCAL);
-    }
+//        //Rotate
+//        node_->RotateAround( cursorPosition,
+//                             Quaternion(0.0f,
+//                                        (INPUT->GetKeyDown(KEY_KP_4) - INPUT->GetKeyDown(KEY_KP_6)) * rotationSpeed * timeStep,
+//                                        0.0f), TS_WORLD);
+//        node_->RotateAround( node_->GetRotation().Inverse() * (cursorPosition - node_->GetPosition()),
+//                             Quaternion((INPUT->GetKeyDown(KEY_KP_8) - INPUT->GetKeyDown(KEY_KP_2)) * rotationSpeed * timeStep,
+//                                        0.0f,
+//                                        0.0f), TS_LOCAL);
+//    }
 
 }
 
@@ -155,7 +155,7 @@ void EdddyCam::Move(Vector3 movement, MoveType type)
 
         } else {
 
-            camera_->SetOrthoSize(Max(1.0f, camera_->GetOrthoSize() + movement.z_ * -5.0f));
+            camera_->SetOrthoSize(Max(1.0f, camera_->GetOrthoSize() + movement.z_ * -1.3f));
             Vector3 lockVector{ cursor->GetLockVector() };
 
             if (lockVector.Length() != 1.0f) { ///Needs more cases or generalisation
@@ -181,18 +181,6 @@ void EdddyCam::Move(Vector3 movement, MoveType type)
                             Quaternion(movement.x_ * rotationSpeed, Vector3::UP) *
                             Quaternion(pitchDelta, node_->GetRight()), TS_WORLD);
     }
-    }
-}
-void EdddyCam::Move(IntVector3 movement, MoveType type)
-{
-    if (type == MT_PAN) {
-
-        Move(node_->GetRight() * movement.x_ +
-             Vector3::UP * movement.y_ +
-             (node_->GetDirection() * Vector3(1.0f, 0.0f, 1.0f)).Normalized() * movement.z_);
-    } else {
-
-        Move(Vector3(movement), type);
     }
 }
 
