@@ -191,18 +191,27 @@ void GUIMaster::CleanIntInput(StringHash eventType, VariantMap& eventData)
 
     String text{ lineEdit->GetText() };
     String cleanText{};
+    bool appendZeros{false};
 
     for (unsigned i{0}; i < text.Length(); ++i) {
 
         char c{ text.At(i) };
 
-        if (c >= 48 && c <= 57) {
-            cleanText.Append(c);
+        if (c >= '0' && c <= '9') {
+
+            if (c != '0' || appendZeros) {
+
+                cleanText.Append(c);
+                appendZeros = true;
+            }
         }
     }
+
+    if (cleanText.Empty() || cleanText == "0")
+        cleanText = "1";
+
     lineEdit->SetText(cleanText);
 }
-
 void GUIMaster::CleanFloatInput(StringHash eventType, VariantMap& eventData)
 { (void)eventType;
 
@@ -213,25 +222,46 @@ void GUIMaster::CleanFloatInput(StringHash eventType, VariantMap& eventData)
 
     String text{ lineEdit->GetText() };
     String cleanText{};
+    bool appendZeros{ false };
+    bool foundStop{ false };
 
+    //Pick out numbers and the first stop or comma
     for (unsigned i{0}; i < text.Length(); ++i) {
 
-        bool foundStop{ false };
         char c{ text.At(i) };
 
-        if (c >= 48 && c <= 57) {
+        if (c >= '0' && c <= '9') {
 
-            cleanText.Append(c);
+            if (c != '0' || foundStop)
+                appendZeros = true;
 
-        } else if (!foundStop && c == '.') {
+            if (c != '0' || appendZeros)
+                cleanText.Append(c);
 
-            cleanText.Append(c);
+        } else if (!foundStop && (c == '.' || c == ',')) {
+
+            cleanText.Append('.');
             foundStop = true;
         }
     }
+    RemoveTrailingZeros(cleanText);
+
+    if (cleanText.Empty() || cleanText == "0")
+        cleanText = "1.0";
+
     lineEdit->SetText(cleanText);
 }
+void GUIMaster::RemoveTrailingZeros(String cleanText)
+{
+    if (cleanText.Length()) {
+        for (unsigned i{ cleanText.Length() - 1 }; i > 1; --i) {
 
-//void GUIMaster::HandleNewMapButtonPressed
-
-
+            if (cleanText.At(i) != '0')
+                break;
+            else if (cleanText.At(i - 1) != '.')
+            {
+                cleanText.Erase(i);
+            }
+        }
+    }
+}

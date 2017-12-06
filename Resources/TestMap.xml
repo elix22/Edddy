@@ -268,8 +268,8 @@
 	<gridblock set="0" block="2" x="14" y="0" z="20" rot="0.707107 0 0.707107 0" />
 	<gridblock set="0" block="3" x="15" y="0" z="3" rot="-1.49012e-07 0 1 0" />
 	<gridblock set="0" block="22" x="15" y="0" z="4" rot="1 0 0 0" />
-	<gridblock set="0" block="23" x="15" y="0" z="5" rot="0.707107 0 0.707106 0" />
-	<gridblock set="0" block="23" x="15" y="0" z="6" rot="4.76837e-07 0 1 0" />
+	<gridblock set="0" block="22" x="15" y="0" z="5" rot="1 0 0 0" />
+	<gridblock set="0" block="22" x="15" y="0" z="6" rot="1 0 0 0" />
 	<gridblock set="0" block="22" x="15" y="0" z="7" rot="1 0 0 0" />
 	<gridblock set="0" block="22" x="15" y="0" z="8" rot="1 0 0 0" />
 	<gridblock set="0" block="22" x="15" y="0" z="9" rot="1 0 0 0" />
@@ -283,8 +283,8 @@
 	<gridblock set="0" block="2" x="16" y="0" z="2" rot="0.707107 0 -0.707106 0" />
 	<gridblock set="0" block="1" x="16" y="0" z="3" rot="0.707107 0 -0.707107 0" />
 	<gridblock set="0" block="22" x="16" y="0" z="4" rot="1 0 0 0" />
-	<gridblock set="0" block="23" x="16" y="0" z="5" rot="1 0 -6.85453e-07 0" />
-	<gridblock set="0" block="23" x="16" y="0" z="6" rot="-0.707106 0 0.707107 0" />
+	<gridblock set="0" block="22" x="16" y="0" z="5" rot="1 0 0 0" />
+	<gridblock set="0" block="22" x="16" y="0" z="6" rot="1 0 0 0" />
 	<gridblock set="0" block="22" x="16" y="0" z="7" rot="1 0 0 0" />
 	<gridblock set="0" block="22" x="16" y="0" z="8" rot="1 0 0 0" />
 	<gridblock set="0" block="22" x="16" y="0" z="9" rot="1 0 0 0" />

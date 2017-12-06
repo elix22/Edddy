@@ -19,6 +19,8 @@ public:
     void CleanFloatInput(StringHash eventType, VariantMap& eventData);
 
     void OpenNewMapDialog();
+    void RemoveTrailingZeros(String cleanText);
+    
 private:
     Window* newMapWindow_;
     SharedPtr<XMLFile> defaultStyle_;

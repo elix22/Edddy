@@ -36,7 +36,8 @@ SOURCES += \
     intvector3.cpp \
     guimaster.cpp \
     blockset.cpp \
-    gui3d.cpp
+    gui3d.cpp \
+    history.cpp
 
 HEADERS += \
     luckey.h \
@@ -57,4 +58,5 @@ HEADERS += \
     editmaster.h \
     guimaster.h \
     blockset.h \
-    gui3d.h
+    gui3d.h \
+    history.h

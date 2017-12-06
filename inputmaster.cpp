@@ -19,6 +19,7 @@
 
 #include "mastercontrol.h"
 #include "editmaster.h"
+#include "history.h"
 #include "castmaster.h"
 #include "guimaster.h"
 #include "edddycam.h"
@@ -118,11 +119,13 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
     }
 
     //Convert key presses to actions
-    for (int key : pressedKeys_) {
-        if (keyBindings_.Contains(key)) {
-            InputAction action{keyBindings_[key]};
-            if (!activeActions.Contains(action))
-                activeActions.Push(action);
+    if (!(ctrlDown_ || altDown_)) {
+        for (int key : pressedKeys_) {
+            if (keyBindings_.Contains(key)) {
+                InputAction action{keyBindings_[key]};
+                if (!activeActions.Contains(action))
+                    activeActions.Push(action);
+            }
         }
     }
     //Convert mouse button presses to actions
@@ -237,9 +240,9 @@ void InputMaster::KeyCameraMovement()
 //                                     INPUT->GetKeyDown(KEY_E) - INPUT->GetKeyDown(KEY_Q),
 //                                     INPUT->GetKeyDown(KEY_S) - INPUT->GetKeyDown(KEY_W)), MT_PAN);
 
-    camera->Move((0.02f + 0.03f * shiftDown_) * Vector3::FORWARD * (INPUT->GetKeyDown(KEY_KP_PLUS) - INPUT->GetKeyDown(KEY_KP_MINUS)), MT_PAN);
-    camera->Move((0.01f + 0.02f * shiftDown_) * Vector3(INPUT->GetKeyDown(KEY_KP_4) - INPUT->GetKeyDown(KEY_KP_6),
-                                                        INPUT->GetKeyDown(KEY_KP_8) - INPUT->GetKeyDown(KEY_KP_2)), MT_ROTATE);
+    camera->Move((0.02f + 0.05f * shiftDown_) * Vector3::FORWARD * (pressedKeys_.Contains(KEY_KP_PLUS) - pressedKeys_.Contains(KEY_KP_MINUS)), MT_PAN);
+    camera->Move((0.01f + 0.02f * shiftDown_) * Vector3(pressedKeys_.Contains(KEY_KP_4) - pressedKeys_.Contains(KEY_KP_6),
+                                                        pressedKeys_.Contains(KEY_KP_8) - pressedKeys_.Contains(KEY_KP_2)), MT_ROTATE);
 }
 
 IntVector3 InputMaster::GetStepFromActions(const InputActions& actions)
@@ -262,38 +265,67 @@ bool InputMaster::CheckActionable(InputAction action, const InputActions& inputA
 
 void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
 { (void)eventType;
+    
 
     int key{ eventData[KeyDown::P_KEY].GetInt() };
 //    Log::Write(1, "Key pressed: " + String(key));
 
-    pressedKeys_.Insert(key);
+    bool uiFocus{ GUI->GetFocusElement() };
 
-    switch (key){
-    case KEY_KP_5: {
-        MC->GetCamera()->ToggleOrthogaphic();
-    } break;
-    case KEY_F12: {
-        Image screenshot(context_);
-        Graphics* graphics{ GetSubsystem<Graphics>() };
-        graphics->TakeScreenShot(screenshot);
-        //Here we save in the Data folder with date and time appended
-        String fileName{ GetSubsystem<FileSystem>()->GetProgramDir() + "Screenshots/Screenshot_" +
-                Time::GetTimeStamp().Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_')+".png" };
-        //Log::Write(1, fileName);
-        screenshot.SavePNG(fileName);
-    } break;
-    case KEY_Q: { if (ctrlDown_)
-            MC->Exit();
-    } break;
-    case KEY_S: { if (ctrlDown_) {
-            EditMaster* editMaster{ GetSubsystem<EditMaster>() };
-            editMaster->SaveMap(GetSubsystem<EditMaster>()->GetCurrentBlockMap(), BLOCKMAP);
+    if (!uiFocus)
+        pressedKeys_.Insert(key);
+
+    if (!shiftDown_ && !ctrlDown_ && !altDown_) {
+
+        switch (key) {
+
+        case KEY_KP_5: {
+            if (!uiFocus)
+                MC->GetCamera()->ToggleOrthogaphic();
+        } break;
+
+        case KEY_F12: {
+            Image screenshot(context_);
+            Graphics* graphics{ GetSubsystem<Graphics>() };
+            graphics->TakeScreenShot(screenshot);
+            //Here we save in the Data folder with date and time appended
+            String fileName{ GetSubsystem<FileSystem>()->GetProgramDir() + "Screenshots/Screenshot_" +
+                        Time::GetTimeStamp().Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_')+".png" };
+            //Log::Write(1, fileName);
+            screenshot.SavePNG(fileName);
+        } break;
+
+        default: break;
         }
-    } break;
-    case KEY_N: { if (ctrlDown_)
-            GetSubsystem<GUIMaster>()->OpenNewMapDialog();
-    }
-    default: break;
+
+    } else if (ctrlDown_) {
+
+        switch (key) {
+
+        case KEY_Q: {
+                MC->Exit();
+        } break;
+
+        case KEY_S: {
+                EditMaster* editMaster{ GetSubsystem<EditMaster>() };
+                editMaster->SaveMap(editMaster->GetCurrentBlockMap(), BLOCKMAP);
+        } break;
+
+        case KEY_N: {
+                GetSubsystem<GUIMaster>()->OpenNewMapDialog();
+        } break;
+
+        case KEY_Z: {
+            if (!shiftDown_) {
+                GetSubsystem<History>()->Undo();
+
+            } else {
+                GetSubsystem<History>()->Redo();
+            }
+        }
+
+        default: break;
+        }
     }
 }
 

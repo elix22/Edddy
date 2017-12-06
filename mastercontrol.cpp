@@ -24,6 +24,7 @@
 #include "castmaster.h"
 #include "effectmaster.h"
 #include "editmaster.h"
+#include "history.h"
 #include "guimaster.h"
 
 #include "edddycam.h"
@@ -74,6 +75,7 @@ void MasterControl::Start()
     context_->RegisterSubsystem(new CastMaster(context_));
     context_->RegisterSubsystem(new EffectMaster(context_));
     context_->RegisterSubsystem(new EditMaster(context_));
+    context_->RegisterSubsystem(new History(context_));
 
     LoadBlocks();
 

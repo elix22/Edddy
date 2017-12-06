@@ -45,6 +45,9 @@ BlockMap::BlockMap(Context* context) : LogicComponent(context),
 
 void BlockMap::OnNodeSet(Node *node)
 { if (!node) return;
+
+    CreateCorners();
+    node_->SetEnabled(false);
 }
 void BlockMap::Initialize()
 {
@@ -61,26 +64,30 @@ void BlockMap::Initialize()
             }
         map_[y] = sheet;
     }
-
-    CreateCorners();
+    node_->SetEnabled(true);
 }
 
-void BlockMap::CreateCorners()
+void BlockMap::CreateCorners() ///Does not work correctly for non-square maps
 {
     for (int c{0}; c < 8; ++c) {
 
         Node* cornerNode{ node_->CreateChild("MapCorner") };
-        cornerNode->SetPosition(-0.5f * blockSize_);
-        cornerNode->SetScale(13.0f * Min(Min(blockSize_.x_, blockSize_.y_), blockSize_.z_));
-        cornerNode->RotateAround(GetCenter() - 0.5f * blockSize_,
-                                 Quaternion(
-                                     c / 4  * 180.0f,
-                                     c % 4  *  90.0f,
-                                    0.0f), TS_WORLD);
+//        cornerNode->SetPosition(-0.5f * blockSize_);
+//        cornerNode->SetScale(13.0f * Min(Min(blockSize_.x_, blockSize_.y_), blockSize_.z_));
+        cornerNode->Rotate(Quaternion(c / 4  * 180.0f, c % 4  *  90.0f, 0.0f), TS_WORLD);
 
         StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
         cornerModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
         cornerModel->SetMaterial(GetSubsystem<ResourceMaster>()->GetMaterial("CornerInactive"));
+
+        corners_.Push(cornerNode);
+    }
+}
+void BlockMap::UpdateCorners()
+{
+    for (Node* c : corners_) {
+
+//        c
     }
 }
 

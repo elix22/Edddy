@@ -66,6 +66,8 @@ public:
 private:
     HashMap<int, Sheet> map_;
 
+    PODVector<Node*> corners_;
+
     IntVector3 mapSize_;
     Vector3 blockSize_;
 
@@ -75,6 +77,7 @@ private:
     void Initialize();
     void SetBlockSize(Vector3 size);
     int GetBlockSetId(Block* block, HashMap<int, BlockSet*>& blockSetsById);
+    void UpdateCorners();
 };
 
 #endif // BLOCKMAP_H

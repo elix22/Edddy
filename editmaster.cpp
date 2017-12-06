@@ -17,7 +17,6 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "editmaster.h"
 #include "inputmaster.h"
 #include "edddycursor.h"
 #include "resourcemaster.h"
@@ -26,6 +25,9 @@
 #include "blockmap.h"
 #include "blockset.h"
 #include "edddyevents.h"
+#include "history.h"
+
+#include "editmaster.h"
 
 EditMaster::EditMaster(Context* context) : Object(context),
     blockMaps_{},
@@ -300,8 +302,23 @@ void EditMaster::PickBlock()
 
 void EditMaster::PutBlock(IntVector3 coords, Quaternion rotation, Block* block)
 {
+    Change change{};
+    change.position_.first_ = change.position_.second_ = Vector3(coords);
+
+    change.instance_ = GetCurrentBlockMap()->GetBlockInstance(coords);
+    change.block_.first_ = change.instance_->GetBlock();
+    change.rotation_.first_ = change.instance_->GetRotation();
 
     GetCurrentBlockMap()->SetBlock(coords, rotation, block);
+
+    change.block_.second_ = change.instance_->GetBlock();
+    change.rotation_.second_ = change.instance_->GetRotation();
+
+    if (change.Any()) {
+
+        GetSubsystem<History>()->AddChange(change);
+        GetSubsystem<History>()->EndStep();
+    }
 }
 void EditMaster::PutBlock()
 {

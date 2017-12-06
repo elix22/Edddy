@@ -102,6 +102,7 @@
 #define GRAPHICS GetSubsystem<Graphics>()
 #define RENDERER GetSubsystem<Renderer>()
 #define AUDIO GetSubsystem<Audio>()
+#define GUI GetSubsystem<UI>()
 
 #define MC GetSubsystem<MasterControl>()
 #define RESOURCE GetSubsystem<ResourceMaster>()

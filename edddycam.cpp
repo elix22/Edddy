@@ -65,7 +65,7 @@ void EdddyCam::SetupViewport()
     effectRenderPath->Append(CACHE->GetResource<XMLFile>("PostProcess/BloomHDR.xml"));
     effectRenderPath->SetShaderParameter("BloomHDRThreshold", 0.42f);
     effectRenderPath->SetShaderParameter("BloomHDRMix", Vector2(0.9f, 0.23f));
-    effectRenderPath->SetEnabled("BloomHDR", true);
+    effectRenderPath->SetEnabled("BloomHDR", false);
 
     viewport->SetRenderPath(effectRenderPath);
     RENDERER->SetViewport(0, viewport);
@@ -131,7 +131,7 @@ void EdddyCam::Move(Vector3 movement, MoveType type)
     float cursorDistance{ LucKey::Distance(GetPosition(), cursorPosition) };
 
     bool ortho{ camera_->IsOrthographic() };
-    float panSpeed{ 1.5f + (ortho ? (camera_->GetOrthoSize() * 1.3f) : (cursorDistance * camera_->GetFov() * 0.018f)) };
+    float panSpeed{ 1.5f + (ortho ? (camera_->GetOrthoSize() * 1.3f) : (cursorDistance * camera_->GetFov() * 0.028f)) };
     float rotationSpeed{ 235.0f };
 
     switch (type) {
