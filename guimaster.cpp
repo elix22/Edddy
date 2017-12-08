@@ -18,7 +18,29 @@ GUIMaster::GUIMaster(Context* context) : Object(context),
 
 void GUIMaster::CreateMenuBar()
 {
+    menuBar_ = new BorderImage(context_);
+    menuBar_->SetLayoutMode(LM_HORIZONTAL);
+    menuBar_->SetFixedHeight(27);
 
+    uiRoot_->AddChild(menuBar_);
+    menuBar_->SetStyle("Menu");
+
+    for (String title : {"File", "Edit", "Help"}) {
+
+        Menu* menu{ new Menu(context_) };
+        menu->SetVerticalAlignment(VA_CENTER);
+
+        menuBar_->AddChild(menu);
+        menu->SetStyleAuto();
+
+        Text* menuTitle{ new Text(context_) };
+        menuTitle->SetText(title);
+        menu->AddChild(menuTitle);
+        menuTitle->SetStyleAuto();
+        menuTitle->SetAlignment(HA_CENTER, VA_CENTER);
+        menu->SetMaxWidth(menuTitle->GetWidth() + 32);
+        menu->SetFixedHeight(menuTitle->GetFontSize() * 2);
+    }
 }
 
 void GUIMaster::CreateNewMapWindow()
@@ -90,10 +112,16 @@ void GUIMaster::CreateNewMapWindow()
             Text* lineEditText{ numberEdit->GetTextElement() };
             input_[numberEdit->GetName()] = lineEditText;
 
-            if (i == 0)
+            if (i == 0) {
+
                 SubscribeToEvent(numberEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanIntInput));
-            else
+                SubscribeToEvent(numberEdit, E_DEFOCUSED, URHO3D_HANDLER(GUIMaster, CleanIntInput));
+
+            } else {
+
                 SubscribeToEvent(numberEdit, E_TEXTFINISHED, URHO3D_HANDLER(GUIMaster, CleanFloatInput));
+                SubscribeToEvent(numberEdit, E_DEFOCUSED, URHO3D_HANDLER(GUIMaster, CleanFloatInput));
+            }
 
             subRow->AddChild(numberEdit);
             inputRow->AddChild(subRow);
@@ -124,7 +152,14 @@ void GUIMaster::CreateNewMapWindow()
     SubscribeToEvent(closeButton, E_RELEASED, URHO3D_HANDLER(GUIMaster, HandleCloseButtonPushed));
     SubscribeToEvent(newMapButton, E_RELEASED, URHO3D_HANDLER(GUIMaster, HandleNewMapButtonPushed));
 
+    SubscribeToEvent(GRAPHICS, E_SCREENMODE, URHO3D_HANDLER(GUIMaster, HandleScreenMode));
+
     newMapWindow_->SetVisible(false);
+}
+
+void GUIMaster::HandleScreenMode(StringHash, VariantMap& eventData)
+{
+    menuBar_->SetFixedWidth(eventData[ScreenMode::P_WIDTH].GetInt());
 }
 
 void GUIMaster::OpenNewMapDialog()
@@ -199,11 +234,14 @@ void GUIMaster::CleanIntInput(StringHash eventType, VariantMap& eventData)
 
         if (c >= '0' && c <= '9') {
 
-            if (c != '0' || appendZeros) {
+            if (appendZeros || c != '0') {
 
                 cleanText.Append(c);
                 appendZeros = true;
             }
+        } else if (c == '.' || c == ',') {
+
+            break;
         }
     }
 
@@ -223,7 +261,7 @@ void GUIMaster::CleanFloatInput(StringHash eventType, VariantMap& eventData)
     String text{ lineEdit->GetText() };
     String cleanText{};
     bool appendZeros{ false };
-    bool foundStop{ false };
+    bool foundDecimalMark{ false };
 
     //Pick out numbers and the first stop or comma
     for (unsigned i{0}; i < text.Length(); ++i) {
@@ -232,26 +270,31 @@ void GUIMaster::CleanFloatInput(StringHash eventType, VariantMap& eventData)
 
         if (c >= '0' && c <= '9') {
 
-            if (c != '0' || foundStop)
+            if (c != '0' || foundDecimalMark)
                 appendZeros = true;
 
             if (c != '0' || appendZeros)
                 cleanText.Append(c);
 
-        } else if (!foundStop && (c == '.' || c == ',')) {
+        } else if (!foundDecimalMark && (c == '.' || c == ',')) {
+
+            //Add zero before the decimal mark if no non-zero numbers have been found
+            if (!cleanText.Length())
+                cleanText.Append('0');
 
             cleanText.Append('.');
-            foundStop = true;
+            foundDecimalMark = true;
         }
     }
-    RemoveTrailingZeros(cleanText);
+    if (foundDecimalMark)
+        FixTrailingZeros(cleanText);
 
-    if (cleanText.Empty() || cleanText == "0")
+    if (cleanText.Empty() || cleanText == "0" || cleanText == "0.0")
         cleanText = "1.0";
 
     lineEdit->SetText(cleanText);
 }
-void GUIMaster::RemoveTrailingZeros(String cleanText)
+void GUIMaster::FixTrailingZeros(String& cleanText)
 {
     if (cleanText.Length()) {
         for (unsigned i{ cleanText.Length() - 1 }; i > 1; --i) {
@@ -264,4 +307,7 @@ void GUIMaster::RemoveTrailingZeros(String cleanText)
             }
         }
     }
+    //Add a zero to numbers ending in a decimal mark
+    if (cleanText.At(cleanText.Length() - 1) == '.')
+        cleanText.Append('0');
 }

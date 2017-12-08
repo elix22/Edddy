@@ -66,6 +66,8 @@ void MasterControl::Setup()
 void MasterControl::Start()
 {
     ENGINE->SetMaxFps(50);
+    ENGINE->SetPauseMinimized(true);
+//    ENGINE->SetAutoExit(false);
     SetRandomSeed(TIME->GetSystemTime());
     CACHE->SetAutoReloadResources(true);
 

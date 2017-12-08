@@ -93,9 +93,7 @@ void BlockMap::UpdateCorners()
 
 void BlockMap::LoadXML(const XMLElement &source)
 {
-    SetMapSize(source.GetInt("map_width"),
-               source.GetInt("map_height"),
-               source.GetInt("map_depth"));
+    SetMapSize(source.GetIntVector3("map_size"));
     SetBlockSize(source.GetVector3("block_size"));
     Initialize();
 
@@ -110,9 +108,7 @@ void BlockMap::LoadXML(const XMLElement &source)
 
                 if (gridBlockXML.GetInt("set") == blockSetXML.GetInt("id")){
 
-                    SetBlock(IntVector3(gridBlockXML.GetInt("x"),
-                                        gridBlockXML.GetInt("y"),
-                                        gridBlockXML.GetInt("z")),
+                    SetBlock(gridBlockXML.GetIntVector3("coords"),
                              gridBlockXML.GetQuaternion("rot"),
                              blockSet->GetBlockById(gridBlockXML.GetInt("block")));
 
@@ -128,10 +124,7 @@ void BlockMap::LoadXML(const XMLElement &source)
 
 void BlockMap::SaveXML(XMLElement& dest)
 {
-    dest.SetInt("map_width", GetMapWidth());
-    dest.SetInt("map_height", GetMapHeight());
-    dest.SetInt("map_depth", GetMapDepth());
-
+    dest.SetIntVector3("map_size", GetMapSize());
     dest.SetVector3("block_size", blockSize_);
 
     HashMap<int, BlockSet*> blockSetsById{};
@@ -153,9 +146,7 @@ void BlockMap::SaveXML(XMLElement& dest)
 
         gridBlockElem.SetInt("set", GetBlockSetId(block, blockSetsById));
         gridBlockElem.SetInt("block", block->GetId());
-        gridBlockElem.SetInt("x", coords.x_);
-        gridBlockElem.SetInt("y", coords.y_);
-        gridBlockElem.SetInt("z", coords.z_);
+        gridBlockElem.SetIntVector3("coords", coords);
         gridBlockElem.SetQuaternion("rot", gridBlock->GetRotation());
     }
 }

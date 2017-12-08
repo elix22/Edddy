@@ -19,9 +19,11 @@ public:
     void CleanFloatInput(StringHash eventType, VariantMap& eventData);
 
     void OpenNewMapDialog();
-    void RemoveTrailingZeros(String cleanText);
+    void FixTrailingZeros(String& cleanText);
     
+    void HandleScreenMode(StringHash, VariantMap& eventData);
 private:
+    BorderImage* menuBar_;
     Window* newMapWindow_;
     SharedPtr<XMLFile> defaultStyle_;
     IntVector2 dragBeginPositionMouse_;
