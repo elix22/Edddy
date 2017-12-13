@@ -12,34 +12,73 @@ GUIMaster::GUIMaster(Context* context) : Object(context),
     uiRoot_ = ui->GetRoot();
     uiRoot_->SetDefaultStyle(defaultStyle_);
 
-    CreateMenuBar();
+    CreateToolBar();
     CreateNewMapWindow();
 }
 
-void GUIMaster::CreateMenuBar()
+void GUIMaster::CreateToolBar()
 {
-    menuBar_ = new BorderImage(context_);
-    menuBar_->SetLayoutMode(LM_HORIZONTAL);
-    menuBar_->SetFixedHeight(27);
+    int buttonSize{ 32 };
 
-    uiRoot_->AddChild(menuBar_);
-    menuBar_->SetStyle("Menu");
+    toolBar_ = new BorderImage(context_);
+    toolBar_->SetLayoutMode(LM_HORIZONTAL);
+    toolBar_->SetLayoutSpacing(8);
+    toolBar_->SetFixedHeight(buttonSize + 4);
 
-    for (String title : {"File", "Edit", "Help"}) {
+    uiRoot_->AddChild(toolBar_);
+    toolBar_->SetStyle("Menu");
 
-        Menu* menu{ new Menu(context_) };
-        menu->SetVerticalAlignment(VA_CENTER);
+    for (String group : {"File", "Edit", "Tools", "Help"}) {
 
-        menuBar_->AddChild(menu);
-        menu->SetStyleAuto();
+        bool seperator{ true };
 
-        Text* menuTitle{ new Text(context_) };
-        menuTitle->SetText(title);
-        menu->AddChild(menuTitle);
-        menuTitle->SetStyleAuto();
-        menuTitle->SetAlignment(HA_CENTER, VA_CENTER);
-        menu->SetMaxWidth(menuTitle->GetWidth() + 32);
-        menu->SetFixedHeight(menuTitle->GetFontSize() * 2);
+        StringVector items{};
+        if (group == "File") {
+            items = { "New Map", "Open Map", "Save Map" };
+        } else if (group == "Edit") {
+            items = { "Undo", "Redo" };
+        } else if (group == "Tools") {
+            items = { "Rectangle Select", "Brush", "Fill" };
+        } else if (group == "Help") {
+            items = { "Manual", "About" };
+            seperator = false;
+        }
+
+        for (String item : items) {
+            //Create button
+            Button* button{ toolBar_->CreateChild<Button>() };
+            button->SetVerticalAlignment(VA_CENTER);
+
+            button->SetBlendMode(BLEND_ALPHA);
+            Texture* icon{ new Texture2D(context_) };
+            icon->LoadFile("Resources/Textures/Icons/" + item.Split(' ').Front() + ".png");
+            button->SetTexture(icon);
+            button->SetImageRect(IntRect(0, 0, 128, 128));
+            button->SetHoverOffset(0, 4);
+            button->SetPressedOffset(0, -4);
+
+            button->SetFixedSize(buttonSize, buttonSize);
+            button->SetFocusMode(FM_NOTFOCUSABLE);
+
+            //Create tooltip
+            ToolTip* toolTip{ button->CreateChild<ToolTip>() };
+            toolTip->SetPosition(buttonSize - 4, buttonSize / 3);
+
+            BorderImage* toolTipTextHolder{ toolTip->CreateChild<BorderImage>() };
+            toolTipTextHolder->SetStyle("ToolTipBorderImage");
+
+            Text* toolTipText{ toolTipTextHolder->CreateChild<Text>() };
+            toolTipText->SetStyleAuto();
+            toolTipText->SetText(item);
+        }
+        //End groups with seperators
+        if (seperator) {
+
+            BorderImage* seperatorElement{ toolBar_->CreateChild<BorderImage>() };
+            seperatorElement->SetFixedWidth(16);
+            seperatorElement->SetFixedHeight(buttonSize);
+            seperatorElement->SetBlendMode(BLEND_MULTIPLY);
+        }
     }
 }
 
@@ -159,7 +198,7 @@ void GUIMaster::CreateNewMapWindow()
 
 void GUIMaster::HandleScreenMode(StringHash, VariantMap& eventData)
 {
-    menuBar_->SetFixedWidth(eventData[ScreenMode::P_WIDTH].GetInt());
+    toolBar_->SetFixedWidth(eventData[ScreenMode::P_WIDTH].GetInt());
 }
 
 void GUIMaster::OpenNewMapDialog()

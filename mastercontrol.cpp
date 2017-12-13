@@ -58,10 +58,7 @@ void MasterControl::Setup()
 
     engineParameters_[EP_FULL_SCREEN] = false;
     engineParameters_[EP_WINDOW_RESIZABLE] = true;
-//    engineParameters_[EP_WINDOW_HEIGHT] = 1280;
-//    engineParameters_[EP_WINDOW_WIDTH] = 1024;
 }
-
 
 void MasterControl::Start()
 {
@@ -162,7 +159,7 @@ void MasterControl::CreateScene()
     Node* camNode{ scene_->CreateChild("Camera") };
     camera_ = camNode->CreateComponent<EdddyCam>();
     //Create 3D GUI
-    context_->RegisterSubsystem(new GUI3D(context_));
+//    context_->RegisterSubsystem(new GUI3D(context_));
 
     //Create the cursor
     Node* cursorNode{ scene_->CreateChild("Cursor") };

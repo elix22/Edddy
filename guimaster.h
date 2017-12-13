@@ -23,7 +23,7 @@ public:
     
     void HandleScreenMode(StringHash, VariantMap& eventData);
 private:
-    BorderImage* menuBar_;
+    BorderImage* toolBar_;
     Window* newMapWindow_;
     SharedPtr<XMLFile> defaultStyle_;
     IntVector2 dragBeginPositionMouse_;
@@ -32,7 +32,7 @@ private:
     SharedPtr<UIElement> uiRoot_;
     LineEdit* lineEdit_;
     HashMap<String, Text*> input_;
-    void CreateMenuBar();
+    void CreateToolBar();
 };
 
 #endif // GUIMASTER_H
