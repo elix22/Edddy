@@ -33,6 +33,7 @@ private:
     LineEdit* lineEdit_;
     HashMap<String, Text*> input_;
     void CreateToolBar();
+    void HandleToolBarButtonPressed(StringHash eventType, VariantMap& eventData);
 };
 
 #endif // GUIMASTER_H

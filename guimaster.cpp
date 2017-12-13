@@ -1,4 +1,5 @@
 #include "editmaster.h"
+#include "history.h"
 #include "inputmaster.h"
 
 #include "guimaster.h"
@@ -46,7 +47,7 @@ void GUIMaster::CreateToolBar()
 
         for (String item : items) {
             //Create button
-            Button* button{ toolBar_->CreateChild<Button>() };
+            Button* button{ toolBar_->CreateChild<Button>(item) };
             button->SetVerticalAlignment(VA_CENTER);
 
             button->SetBlendMode(BLEND_ALPHA);
@@ -70,6 +71,16 @@ void GUIMaster::CreateToolBar()
             Text* toolTipText{ toolTipTextHolder->CreateChild<Text>() };
             toolTipText->SetStyleAuto();
             toolTipText->SetText(item);
+
+            SubscribeToEvent(button, E_RELEASED, URHO3D_HANDLER(GUIMaster, HandleToolBarButtonPressed));
+
+            if (item == "Rectangle Select"
+             || item == "Fill"
+             || item == "Manual"
+                    || item == "About") {
+                button->SetColor(Color(0.0f, 1.0f, 1.0f));
+                button->SetBlendMode(BLEND_SUBTRACT);
+            }
         }
         //End groups with seperators
         if (seperator) {
@@ -79,6 +90,27 @@ void GUIMaster::CreateToolBar()
             seperatorElement->SetFixedHeight(buttonSize);
             seperatorElement->SetBlendMode(BLEND_MULTIPLY);
         }
+    }
+}
+
+void GUIMaster::HandleToolBarButtonPressed(StringHash eventType, VariantMap& eventData)
+{
+    UIElement* element{ static_cast<UIElement*>(eventData[Released::P_ELEMENT].GetPtr()) };
+    String name{ element->GetName() };
+
+    EditMaster* editMaster{ GetSubsystem<EditMaster>() };
+
+    if (name == "New Map") {
+
+        OpenNewMapDialog();
+    } else if (name == "Open Map") {
+        editMaster->LoadMap(BLOCKMAP);
+    } else if (name == "Save Map") {
+        editMaster->SaveMap(editMaster->GetCurrentBlockMap(), BLOCKMAP);
+    } else if (name == "Undo") {
+        GetSubsystem<History>()->Undo();
+    } else if (name == "Redo") {
+        GetSubsystem<History>()->Redo();
     }
 }
 

@@ -351,8 +351,8 @@
 	<gridblock set="0" block="21" coords="0 1 7" rot="1 0 9.23872e-07 0" />
 	<gridblock set="0" block="21" coords="0 1 11" rot="-1.10269e-06 0 1 0" />
 	<gridblock set="0" block="22" coords="0 1 16" rot="1 0 0 0" />
-	<gridblock set="0" block="23" coords="0 1 17" rot="-1 0 3.57628e-07 0" />
-	<gridblock set="0" block="23" coords="0 1 18" rot="-0.707106 0 0.707107 0" />
+	<gridblock set="0" block="22" coords="0 1 17" rot="1 0 0 0" />
+	<gridblock set="0" block="22" coords="0 1 18" rot="1 0 0 0" />
 	<gridblock set="0" block="22" coords="0 1 19" rot="1 0 0 0" />
 	<gridblock set="0" block="21" coords="1 1 2" rot="-1.10269e-06 0 0.999999 0" />
 	<gridblock set="0" block="21" coords="1 1 7" rot="1 0 9.23872e-07 0" />
