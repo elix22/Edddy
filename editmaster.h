@@ -76,6 +76,8 @@ public:
     void PutBlock(IntVector3 coords, Quaternion rotation, Block* block);
     void PutBlock();
     void PickBlock();
+    void ClearBlock(IntVector3 coords);
+    void ClearBlock();
 private:
     Vector<BlockMap*> blockMaps_;
     BlockMap* currentBlockMap_;

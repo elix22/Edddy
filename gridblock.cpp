@@ -59,7 +59,6 @@ void GridBlock::OnNodeSet(Node *node)
     blockMap_ = node_->GetParent()->GetComponent<BlockMap>();
 
     BlockInstance::OnNodeSet(node);
-    blockNode_->SetPosition(Vector3::DOWN * blockMap_->GetBlockHeight() * 0.5f);
 
     sidesNode_ = node_->CreateChild("SIDES");
     centerNode_ = sidesNode_->CreateChild("CENTER");

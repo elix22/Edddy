@@ -157,7 +157,7 @@ void EdddyCursor::UpdateSizeAndOffset()
     Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
 
     boxNode_->SetScale(Vector3(blockSize.x_, blockSize.y_, blockSize.z_));
-    blockNode_->SetPosition(Vector3::DOWN * blockSize.y_ * 0.5f);
+//    blockNode_->SetPosition(Vector3::DOWN * blockSize.y_ * 0.5f);
 }
 
 void EdddyCursor::SetAxisLock(std::bitset<3> lock)

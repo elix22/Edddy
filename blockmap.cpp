@@ -67,14 +67,11 @@ void BlockMap::Initialize()
     node_->SetEnabled(true);
 }
 
-void BlockMap::CreateCorners() ///Does not work correctly for non-square maps
+void BlockMap::CreateCorners()
 {
     for (int c{0}; c < 8; ++c) {
 
         Node* cornerNode{ node_->CreateChild("MapCorner") };
-//        cornerNode->SetPosition(-0.5f * blockSize_);
-//        cornerNode->SetScale(13.0f * Min(Min(blockSize_.x_, blockSize_.y_), blockSize_.z_));
-        cornerNode->Rotate(Quaternion(c / 4  * 180.0f, c % 4  *  90.0f, 0.0f), TS_WORLD);
 
         StaticModel* cornerModel{ cornerNode->CreateComponent<StaticModel>() };
         cornerModel->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Corner"));
@@ -85,9 +82,17 @@ void BlockMap::CreateCorners() ///Does not work correctly for non-square maps
 }
 void BlockMap::UpdateCorners()
 {
-    for (Node* c : corners_) {
+    for (unsigned i{0}; i < corners_.Size(); ++i) {
 
-//        c
+        Node* c{ corners_.At(i) };
+        c->SetPosition(Vector3(-0.5f + 1.0f *  (i % 2),
+                               -0.5f + 1.0f * ((i / 2) % 2),
+                               -0.5f + 1.0f *  (i / 4))
+                       * Vector3(mapSize_) * blockSize_ + GetCenter() - 0.5f * blockSize_);
+
+        Vector3 pos{ c->GetPosition() };
+        c->SetScale(blockSize_.Length() * 5.0f * Vector3(Sign(pos.x_) * Sign(pos.y_) * Sign(pos.z_), 1.0f, 1.0f));
+        c->LookAt(Vector3::FORWARD * pos.z_, Vector3::UP * pos.y_, TS_LOCAL);
     }
 }
 
@@ -230,10 +235,14 @@ void BlockMap::SetBlock(IntVector3 coords, Quaternion rotation, Block* block)
 void BlockMap::SetBlockSize(Vector3 size)
 {
     blockSize_ = size;
+
+    UpdateCorners();
 }
 void BlockMap::SetMapSize(IntVector3 size)
 {
     mapSize_ = size;
+
+    UpdateCorners();
 }
 void BlockMap::SetMapSize(int w, int h, int d)
 {

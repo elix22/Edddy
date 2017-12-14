@@ -329,3 +329,11 @@ void EditMaster::PutBlock()
 
     PutBlock(cursor->GetCoords(), cursor->GetTargetRotation(), currentBlock_);
 }
+void EditMaster::ClearBlock(IntVector3 coords)
+{
+    PutBlock(coords, Quaternion::IDENTITY, nullptr);
+}
+void EditMaster::ClearBlock()
+{
+    ClearBlock(GetSubsystem<InputMaster>()->GetCursor()->GetCoords());
+}

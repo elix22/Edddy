@@ -30,10 +30,10 @@ public:
     ResourceMaster(Context* context);
     Model* GetModel(String model);
     Material* GetMaterial(String material);
-    String GetResourcePath() const { return resourcePath_; }
-    String SetResourcePath(const String& path) { resourcePath_ = path; }
+//    String GetResourcePath() const { return resourcePath_; }
+//    String SetResourcePath(const String& path) { resourcePath_ = path; }
 private:
-    String resourcePath_;
+//    String resourcePath_;
 };
 
 #endif // RESOURCEMASTER_H

@@ -76,7 +76,7 @@ void MasterControl::Start()
     context_->RegisterSubsystem(new EditMaster(context_));
     context_->RegisterSubsystem(new History(context_));
 
-    LoadBlocks();
+//    LoadBlocks();
 
     CreateConsoleAndDebugHud();
     CreateScene();
@@ -87,8 +87,8 @@ void MasterControl::Start()
 
 void MasterControl::LoadBlocks()
 {
-//    GetSubsystem<ResourceMaster>()->SetResourcePath("/home/frode/Creations/Games/OGTatt/Resources");
-    String blockPath{ GetSubsystem<ResourceMaster>()->GetResourcePath() + "Blocks" }; ///Should be relative to map path
+//    GetSubsystem<ResourceMaster>()->SetResourcePath("Resources");
+    String blockPath{ /*GetSubsystem<ResourceMaster>()->GetResourcePath() + */"Rsources/Blocks" }; ///Should be relative to map path
 
     Vector<String> blocksNames{};
     FILES->ScanDir(blocksNames, blockPath, "mdl", SCAN_FILES, true);

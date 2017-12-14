@@ -59,6 +59,7 @@ InputMaster::InputMaster(Context* context) : Object(context),
     keyBindings_[KEY_SLASH]                                            = mouseButtonBindings_[MOUSEB_RIGHT] = ACTION_PICKBLOCK;
     keyBindings_[KEY_RETURN]       = joystickButtonBindings_[SB_CROSS] = mouseButtonBindings_[MOUSEB_LEFT]  = ACTION_CONFIRM;
     keyBindings_[KEY_ESCAPE]       = joystickButtonBindings_[SB_CIRCLE]                                     = ACTION_CANCEL;
+    keyBindings_[KEY_DELETE]                                                                                = ACTION_DELETE;
 
     SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(InputMaster, HandleKeyDown));
     SubscribeToEvent(E_KEYUP, URHO3D_HANDLER(InputMaster, HandleKeyUp));
@@ -155,8 +156,15 @@ void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
 
 void InputMaster::HandleActions(const InputActions& actions, float timeStep)
 {
-    if (GetSubsystem<UI>()->GetFocusElement())
+    UI* ui{ GetSubsystem<UI>() };
+    if (ui->GetFocusElement())
         return;
+
+    bool hovering{ false };
+    if (ui->GetElementAt(INPUT->GetMousePosition())) {
+
+        hovering = true;
+    }
 
     IntVector3 step{ GetStepFromActions(actions) };
     if (step != IntVector3::ZERO) {
@@ -170,6 +178,7 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
     }
 
     //Handle actions and reset action timers
+    EditMaster* editMaster{ GetSubsystem<EditMaster>() };
     for (InputAction action : actions){
 
         if (unusedActions.Contains(action))
@@ -198,11 +207,11 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
             } break;
             case ACTION_NEXT_BLOCK: {
 
-                GetSubsystem<EditMaster>()->NextBlock();
+                editMaster->NextBlock();
             } break;
             case ACTION_PREVIOUS_BLOCK: {
 
-                GetSubsystem<EditMaster>()->PreviousBlock();
+                editMaster->PreviousBlock();
             } break;
             case ACTION_ROTATE_CW: {
 
@@ -214,13 +223,19 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
             } break;
             case ACTION_PICKBLOCK: {
 
-                GetSubsystem<EditMaster>()->PickBlock();
+                editMaster->PickBlock();
             } break;
             case ACTION_CONFIRM: {
 
-                GetSubsystem<EditMaster>()->PutBlock();
+                editMaster->PutBlock();
             } break;
-            case ACTION_CANCEL:           break;
+            case ACTION_DELETE: {
+
+                editMaster->ClearBlock();
+            } break;
+            case ACTION_CANCEL: {
+                editMaster->SetCurrentBlock(nullptr);
+            } break;
             default: break;
             }
         }
@@ -302,6 +317,10 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
 
         switch (key) {
 
+        case KEY_N: {
+                GetSubsystem<GUIMaster>()->OpenNewMapDialog();
+        } break;
+
         case KEY_Q: {
                 MC->Exit();
         } break;
@@ -311,8 +330,9 @@ void InputMaster::HandleKeyDown(StringHash eventType, VariantMap &eventData)
                 editMaster->SaveMap(editMaster->GetCurrentBlockMap(), BLOCKMAP);
         } break;
 
-        case KEY_N: {
-                GetSubsystem<GUIMaster>()->OpenNewMapDialog();
+        case KEY_Y: {
+            GetSubsystem<History>()->Redo();
+
         } break;
 
         case KEY_Z: {
