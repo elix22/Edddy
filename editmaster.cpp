@@ -26,6 +26,9 @@
 #include "blockset.h"
 #include "edddyevents.h"
 #include "history.h"
+#include "tool.h"
+
+#include "brush.h"
 
 #include "editmaster.h"
 
@@ -34,7 +37,8 @@ EditMaster::EditMaster(Context* context) : Object(context),
     currentBlockMap_{},
     currentBlockIndex_{0},
     currentBlock_{},
-    currentBlockSet_{}
+    currentBlockSet_{},
+    currentTool_{new Brush(context)}
 {
 }
 
@@ -298,10 +302,16 @@ void EditMaster::PickBlock()
 
         SetCurrentBlock(nullptr);
     }
+
+    //Clear last tool
+    lastTool_ = StringHash{};
 }
 
 void EditMaster::PutBlock(IntVector3 coords, Quaternion rotation, Block* block)
 {
+    if (!currentBlockMap_)
+        return;
+
     Change change{};
     change.position_.first_ = change.position_.second_ = Vector3(coords);
 
@@ -317,17 +327,23 @@ void EditMaster::PutBlock(IntVector3 coords, Quaternion rotation, Block* block)
     if (change.Any()) {
 
         GetSubsystem<History>()->AddChange(change);
-        GetSubsystem<History>()->EndStep();
     }
+}
+
+void EditMaster::PutBlock(IntVector3 coords)
+{
+    EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
+
+    PutBlock(coords, cursor->GetTargetRotation(), currentBlock_);
 }
 void EditMaster::PutBlock()
 {
     EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
 
-    if (!currentBlockMap_ || cursor->IsHidden())
+    if (cursor->IsHidden())
         return;
 
-    PutBlock(cursor->GetCoords(), cursor->GetTargetRotation(), currentBlock_);
+    PutBlock(cursor->GetCoords());
 }
 void EditMaster::ClearBlock(IntVector3 coords)
 {
@@ -336,4 +352,10 @@ void EditMaster::ClearBlock(IntVector3 coords)
 void EditMaster::ClearBlock()
 {
     ClearBlock(GetSubsystem<InputMaster>()->GetCursor()->GetCoords());
+}
+void EditMaster::ApplyTool(bool shiftDown, bool ctrlDown, bool altDown)
+{
+    currentTool_->Apply(shiftDown, ctrlDown, altDown);
+
+    lastTool_ = currentTool_->GetType();
 }

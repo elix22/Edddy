@@ -37,6 +37,7 @@ URHO3D_EVENT(E_CURRENTMAPCHANGE, CurrentMapChange){
 class Block;
 class BlockSet;
 class BlockInstance;
+class Tool;
 
 struct BlockChange{
     BlockInstance* instance_;
@@ -74,10 +75,16 @@ public:
     Block* GetBlock(unsigned index);
     Block* GetCurrentBlock();
     void PutBlock(IntVector3 coords, Quaternion rotation, Block* block);
+    void PutBlock(IntVector3 coords);
     void PutBlock();
     void PickBlock();
     void ClearBlock(IntVector3 coords);
     void ClearBlock();
+
+    Tool* GetTool() const { return currentTool_; }
+    StringHash GetLastToolType() const { return lastTool_; }
+
+    void ApplyTool(bool shiftDown, bool ctrlDown, bool altDown);
 private:
     Vector<BlockMap*> blockMaps_;
     BlockMap* currentBlockMap_;
@@ -86,9 +93,11 @@ private:
     unsigned currentBlockIndex_;
     Block* currentBlock_;
     BlockSet* currentBlockSet_;
+    Tool* currentTool_;
 
     Vector<UndoStep> history_;
     unsigned historyIndex_;
+    StringHash lastTool_;
 };
 
 #endif // EDITMASTER_H

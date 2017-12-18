@@ -31,6 +31,18 @@ History::History(Context* context) : Object(context),
 
 void History::EndStep()
 {
+    //Don't write history if nothing happened
+    bool anyChange{ false };
+    for (const Change& change : currentStep_) {
+        if (change.Any())
+            anyChange = true;
+    }
+    if (!anyChange) {
+        currentStep_.Clear();
+        return;
+    }
+
+    //Clear future
     while (steps_.Size() > stepIndex_) {
 
         steps_.Pop();

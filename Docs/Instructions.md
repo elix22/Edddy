@@ -19,11 +19,12 @@ Dragging the **MMB** rotates around the position of the 3D cursor. Combining the
 
 Key | Action
 ----|-------
+**LMB** or **Enter**| Put block
+**Shift+LMB** / **Shift+Enter**| Draw line
 **RMB** | Pick block
 **.** | Next block
 **,** | Previous block
 **Esc**| No block
-**LMB** or **Enter**| Put block
 **Delete**| Remove block
 **Ctrl+Z**| Undo
 **Ctrl+Shift+Z** / **Ctrl+Y**| Redo

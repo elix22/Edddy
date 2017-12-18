@@ -37,7 +37,9 @@ SOURCES += \
     guimaster.cpp \
     blockset.cpp \
     gui3d.cpp \
-    history.cpp
+    history.cpp \
+    tool.cpp \
+    brush.cpp
 
 HEADERS += \
     luckey.h \
@@ -59,4 +61,6 @@ HEADERS += \
     guimaster.h \
     blockset.h \
     gui3d.h \
-    history.h
+    history.h \
+    tool.h \
+    brush.h

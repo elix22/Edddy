@@ -227,7 +227,7 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
             } break;
             case ACTION_CONFIRM: {
 
-                editMaster->PutBlock();
+                editMaster->ApplyTool(shiftDown_, ctrlDown_, altDown_);
             } break;
             case ACTION_DELETE: {
 

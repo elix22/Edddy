@@ -33,10 +33,10 @@ struct Change {
     Pair<Quaternion, Quaternion> rotation_;
     Pair<Block*, Block*> block_;
 
-    bool Any() { return !(block_.first_ == nullptr && block_.second_ == nullptr) &&
-                        !(  position_.first_ == position_.second_
-                         && rotation_.first_ == rotation_.second_
-                         && block_.first_ == block_.second_); }
+    bool Any() const { return !(block_.first_ == nullptr && block_.second_ == nullptr) &&
+                                !(  position_.first_ == position_.second_
+                                 && rotation_.first_ == rotation_.second_
+                                 && block_.first_ == block_.second_); }
 };
 
 typedef Vector<Change> Step;
