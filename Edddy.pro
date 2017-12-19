@@ -39,7 +39,8 @@ SOURCES += \
     gui3d.cpp \
     history.cpp \
     tool.cpp \
-    brush.cpp
+    brush.cpp \
+    fill.cpp
 
 HEADERS += \
     luckey.h \
@@ -63,4 +64,5 @@ HEADERS += \
     gui3d.h \
     history.h \
     tool.h \
-    brush.h
+    brush.h \
+    fill.h

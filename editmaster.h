@@ -46,7 +46,6 @@ struct BlockChange{
 };
 typedef Vector<BlockChange> UndoStep;
 
-
 class EditMaster : public Object
 {
     URHO3D_OBJECT(EditMaster, Object);
@@ -81,6 +80,7 @@ public:
     void ClearBlock(IntVector3 coords);
     void ClearBlock();
 
+    void SetTool(Tool* tool);
     Tool* GetTool() const { return currentTool_; }
     StringHash GetLastToolType() const { return lastTool_; }
 
@@ -98,6 +98,7 @@ private:
     Vector<UndoStep> history_;
     unsigned historyIndex_;
     StringHash lastTool_;
+    void CreateTools();
 };
 
 #endif // EDITMASTER_H

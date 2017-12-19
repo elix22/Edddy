@@ -164,11 +164,11 @@ void GridBlock::HandleCursorStep(StringHash eventType, VariantMap& eventData)
 
     float distanceToCursor{ Distance(node_->GetPosition() / blockMap_->GetBlockSize(), cursorCoords) };
 
-    float centerScale{1.0f - Clamp(distanceToCursor * 0.25f - 0.5f, 0.0f, 0.666f)};
+    float centerScale{1.0f - Clamp(distanceToCursor * 0.25f - 0.5f, 0.0f, 0.95f)};
 
     centerNode_->SetScale(centerScale);
 
-    if (WithinLock() && !cursor->IsHidden()){
+    if (WithinLock() && centerScale > 0.1f && !cursor->IsHidden()){
 
         if (coords_ == cursor->GetCoords()) {
             activeCenterGroup_->AddInstanceNode(centerNode_);

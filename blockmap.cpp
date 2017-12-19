@@ -253,5 +253,9 @@ Vector3 BlockMap::GetCenter()
 {
     return node_->GetPosition() + 0.5f * blockSize_ * Vector3(mapSize_.x_, mapSize_.y_, mapSize_.z_);
 }
-
-
+bool BlockMap::Contains(IntVector3 coords)
+{
+    return (coords.x_ >= 0 && coords.x_ < mapSize_.x_
+         && coords.y_ >= 0 && coords.y_ < mapSize_.y_
+         && coords.z_ >= 0 && coords.z_ < mapSize_.z_);
+}

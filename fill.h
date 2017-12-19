@@ -16,46 +16,25 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef TOOL_H
-#define TOOL_H
+#ifndef FILL_H
+#define FILL_H
 
 #include <Urho3D/Urho3D.h>
-#include "luckey.h"
+#include "tool.h"
 
-class EdddyCursor;
+class Block;
 
-class Tool : public Object
+class Fill : public Tool
 {
-    URHO3D_OBJECT(Tool, Object);
+    URHO3D_OBJECT(Fill, Tool);
 public:
-    Tool(Context* context);
+    Fill(Context* context);
+    void Apply(bool shiftDown, bool ctrlDown, bool altDown) override;
+private:
+    void Flood(IntVector3 coords, HashSet<IntVector3>& area, bool obeyLock);
 
-    virtual void Apply(bool shiftDown, bool ctrlDown, bool altDown) = 0;
-
-    bool IsLastTool();
-
-    template <class T> static Tool* GetTool() {
-
-        StringHash toolType{ T::GetTypeInfoStatic()->GetType() };
-
-        return Tool::GetTool(toolType);
-    }
-    static Tool* GetTool(StringHash toolType) {
-
-        if (tools_.Contains(toolType)) {
-
-            return tools_[toolType].Get();
-
-        } else
-            return nullptr;
-    }
-
-protected:
-    static HashMap<StringHash, SharedPtr<Tool>> tools_;
-
-    PODVector<IntVector3> BresenhamLine(const IntVector3 start, const IntVector3 end);
-    EdddyCursor* GetCursor();
-    void Init();
+    Block* targetBlock_;
+    Block* replacementBlock_;
 };
 
-#endif // TOOL_H
+#endif // FILL_H

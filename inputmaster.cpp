@@ -25,6 +25,8 @@
 #include "edddycam.h"
 #include "edddycursor.h"
 
+#include "tool.h"
+
 #include "inputmaster.h"
 
 using namespace LucKey;
@@ -60,6 +62,8 @@ InputMaster::InputMaster(Context* context) : Object(context),
     keyBindings_[KEY_RETURN]       = joystickButtonBindings_[SB_CROSS] = mouseButtonBindings_[MOUSEB_LEFT]  = ACTION_CONFIRM;
     keyBindings_[KEY_ESCAPE]       = joystickButtonBindings_[SB_CIRCLE]                                     = ACTION_CANCEL;
     keyBindings_[KEY_DELETE]                                                                                = ACTION_DELETE;
+    keyBindings_[KEY_B]                                                                                     = ACTION_BRUSH;
+    keyBindings_[KEY_F]                                                                                     = ACTION_FILL;
 
     SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(InputMaster, HandleKeyDown));
     SubscribeToEvent(E_KEYUP, URHO3D_HANDLER(InputMaster, HandleKeyUp));
@@ -232,6 +236,12 @@ void InputMaster::HandleActions(const InputActions& actions, float timeStep)
             case ACTION_DELETE: {
 
                 editMaster->ClearBlock();
+            } break;
+            case ACTION_BRUSH: {
+                editMaster->SetTool(Tool::GetTool(StringHash("Brush")));
+            } break;
+            case ACTION_FILL: {
+                editMaster->SetTool(Tool::GetTool(StringHash("Fill")));
             } break;
             case ACTION_CANCEL: {
                 editMaster->SetCurrentBlock(nullptr);

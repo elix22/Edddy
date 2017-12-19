@@ -63,6 +63,7 @@ public:
     Vector<Block*> GetUsedBlocks();
     Vector<BlockSet*> GetUsedBlockSets();
     Vector<GridBlock*> GetOccupiedGridBlocks();
+    bool Contains(IntVector3 coords);
 private:
     HashMap<int, Sheet> map_;
 

@@ -29,6 +29,7 @@
 #include "tool.h"
 
 #include "brush.h"
+#include "fill.h"
 
 #include "editmaster.h"
 
@@ -38,8 +39,15 @@ EditMaster::EditMaster(Context* context) : Object(context),
     currentBlockIndex_{0},
     currentBlock_{},
     currentBlockSet_{},
-    currentTool_{new Brush(context)}
+    currentTool_{}
 {
+    CreateTools();
+}
+void EditMaster::CreateTools()
+{
+    SetTool(new Brush(context_));
+    new Fill(context_);
+
 }
 
 void EditMaster::NewMap(const IntVector3& mapSize, const Vector3& blockSize)
@@ -88,6 +96,8 @@ bool EditMaster::LoadMap(String fileName)
 
 void EditMaster::SaveMap(BlockMap* blockMap, String fileName)
 {
+    if (!blockMap || fileName.Empty())
+        return;
 
     XMLFile* mapXML{ new XMLFile(MC->GetContext()) };
     XMLElement rootElem{ mapXML->CreateRoot("blockmap") };
@@ -303,7 +313,7 @@ void EditMaster::PickBlock()
         SetCurrentBlock(nullptr);
     }
 
-    //Clear last tool
+    //Clear last used tool
     lastTool_ = StringHash{};
 }
 
@@ -353,8 +363,21 @@ void EditMaster::ClearBlock()
 {
     ClearBlock(GetSubsystem<InputMaster>()->GetCursor()->GetCoords());
 }
+
+void EditMaster::SetTool(Tool* tool)
+{
+    if (!tool || tool == currentTool_)
+        return;
+
+    if (currentTool_)
+        lastTool_ = currentTool_->GetType();
+    currentTool_ = tool;
+}
 void EditMaster::ApplyTool(bool shiftDown, bool ctrlDown, bool altDown)
 {
+    if (!currentTool_ || !currentBlockMap_)
+        return;
+
     currentTool_->Apply(shiftDown, ctrlDown, altDown);
 
     lastTool_ = currentTool_->GetType();

@@ -22,28 +22,34 @@
 
 #include "tool.h"
 
+HashMap<StringHash, SharedPtr<Tool>> Tool::tools_{};
+
 Tool::Tool(Context* context) : Object(context)
 {
+}
+
+void Tool::Init()
+{
+    if (!tools_.Contains(GetType()))
+        tools_[GetType()] = SharedPtr<Tool>(this);
 }
 
 bool Tool::IsLastTool()
 {
     return GetType() == GetSubsystem<EditMaster>()->GetLastToolType();
 }
-IntVector3 Tool::GetCursorCoords()
+
+EdddyCursor* Tool::GetCursor()
 {
-    return GetSubsystem<InputMaster>()->GetCursor()->GetCoords();
+    return GetSubsystem<InputMaster>()->GetCursor();
 }
 
 PODVector<IntVector3> Tool::BresenhamLine(const IntVector3 start, const IntVector3 end)
 {
-    PODVector<IntVector3> line;
+    PODVector<IntVector3> line{};
     int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
-    IntVector3 point;
+    IntVector3 point{ start };
 
-    point.x_ = start.x_;
-    point.y_ = start.y_;
-    point.z_ = start.z_;
     dx = end.x_ - start.x_;
     dy = end.y_ - start.y_;
     dz = end.z_ - start.z_;

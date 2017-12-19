@@ -2,6 +2,9 @@
 #include "history.h"
 #include "inputmaster.h"
 
+#include "brush.h"
+#include "fill.h"
+
 #include "guimaster.h"
 
 GUIMaster::GUIMaster(Context* context) : Object(context),
@@ -75,7 +78,6 @@ void GUIMaster::CreateToolBar()
             SubscribeToEvent(button, E_RELEASED, URHO3D_HANDLER(GUIMaster, HandleToolBarButtonPressed));
 
             if (item == "Rectangle Select"
-             || item == "Fill"
              || item == "Manual"
                     || item == "About") {
                 button->SetColor(Color(0.0f, 1.0f, 1.0f));
@@ -101,7 +103,6 @@ void GUIMaster::HandleToolBarButtonPressed(StringHash eventType, VariantMap& eve
     EditMaster* editMaster{ GetSubsystem<EditMaster>() };
 
     if (name == "New Map") {
-
         OpenNewMapDialog();
     } else if (name == "Open Map") {
         editMaster->LoadMap(BLOCKMAP);
@@ -111,6 +112,10 @@ void GUIMaster::HandleToolBarButtonPressed(StringHash eventType, VariantMap& eve
         GetSubsystem<History>()->Undo();
     } else if (name == "Redo") {
         GetSubsystem<History>()->Redo();
+    } else if (name == "Brush") {
+        editMaster->SetTool(Tool::GetTool<Brush>());
+    } else if (name == "Fill") {
+        editMaster->SetTool(Tool::GetTool<Fill>());
     }
 }
 

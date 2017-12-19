@@ -18,21 +18,24 @@
 
 #include "editmaster.h"
 #include "history.h"
+#include "edddycursor.h"
 
 #include "brush.h"
 
 Brush::Brush(Context* context) : Tool(context)
 {
+    Init();
 }
 
 void Brush::Apply(bool shiftDown, bool ctrlDown, bool altDown)
 {
     EditMaster* editMaster{ GetSubsystem<EditMaster>() };
-    IntVector3 cursorCoords{ GetCursorCoords() };
+    IntVector3 cursorCoords{ GetCursor()->GetCoords() };
 
     if (shiftDown && IsLastTool()){
         for (IntVector3 coords: BresenhamLine(lastCoords_, cursorCoords)) {
-            editMaster->PutBlock(coords);
+            if (coords != lastCoords_)
+                editMaster->PutBlock(coords);
         }
     } else {
 

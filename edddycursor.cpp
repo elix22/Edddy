@@ -154,7 +154,8 @@ void EdddyCursor::ToggleVisibility()
 
 void EdddyCursor::UpdateSizeAndOffset()
 {
-    Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
+    BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
+    Vector3 blockSize{ currentMap ? currentMap->GetBlockSize() : Vector3::ONE };
 
     boxNode_->SetScale(Vector3(blockSize.x_, blockSize.y_, blockSize.z_));
 //    blockNode_->SetPosition(Vector3::DOWN * blockSize.y_ * 0.5f);
@@ -174,7 +175,8 @@ void EdddyCursor::SetAxisLock(std::bitset<3> lock)
 
 void EdddyCursor::Step(IntVector3 step)
 {
-    IntVector3 mapSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetMapSize() };
+    BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
+    IntVector3 mapSize{ currentMap ? currentMap->GetMapSize() : IntVector3::ONE };
 
     if (axisLock_.count() == 2){
         switch (axisLock_.to_ulong()) {
@@ -213,7 +215,8 @@ void EdddyCursor::Step(IntVector3 step)
 
 bool EdddyCursor::CoordsOnMap(IntVector3 coords)
 {
-    IntVector3 mapSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetMapSize() };
+    BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
+    IntVector3 mapSize{ currentMap ? currentMap->GetMapSize() : IntVector3::ONE };
 
     if ( (coords.x_ < 0 || coords.x_ >= mapSize.x_)
       || (coords.y_ < 0 || coords.y_ >= mapSize.y_)
@@ -230,7 +233,8 @@ bool EdddyCursor::CoordsOnMap(IntVector3 coords)
 
 void EdddyCursor::SetCoords(IntVector3 coords)
 {
-    Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
+    BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
+    Vector3 blockSize{ currentMap ? GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() : Vector3::ONE };
 
     if (!CoordsOnMap(coords)) {
 
@@ -258,7 +262,8 @@ void EdddyCursor::SetCoords(IntVector3 coords)
 
 void EdddyCursor::MoveTo(Vector3 position)
 {
-    Vector3 blockSize{ GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() };
+    BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
+    Vector3 blockSize{ currentMap ? currentMap->GetBlockSize() : Vector3::ONE };
 
     //if (grid)
     IntVector3 coords{ static_cast<int>(round(position.x_ / blockSize.x_)),
