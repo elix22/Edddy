@@ -88,7 +88,7 @@ void MasterControl::Start()
 void MasterControl::LoadBlocks()
 {
 //    GetSubsystem<ResourceMaster>()->SetResourcePath("Resources");
-    String blockPath{ /*GetSubsystem<ResourceMaster>()->GetResourcePath() + */"Rsources/Blocks" }; ///Should be relative to map path
+    String blockPath{ /*GetSubsystem<ResourceMaster>()->GetResourcePath() + */"Resources/Blocks" }; ///Should be relative to map path
 
     Vector<String> blocksNames{};
     FILES->ScanDir(blocksNames, blockPath, "mdl", SCAN_FILES, true);

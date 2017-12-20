@@ -112,10 +112,8 @@ void GUIMaster::HandleToolBarButtonPressed(StringHash eventType, VariantMap& eve
         GetSubsystem<History>()->Undo();
     } else if (name == "Redo") {
         GetSubsystem<History>()->Redo();
-    } else if (name == "Brush") {
-        editMaster->SetTool(Tool::GetTool<Brush>());
-    } else if (name == "Fill") {
-        editMaster->SetTool(Tool::GetTool<Fill>());
+    } else if (name == "Brush" || name == "Fill") {
+        editMaster->SetTool(Tool::GetTool(StringHash(name)));
     }
 }
 

@@ -14,13 +14,28 @@ The **X**, **Y** or **Z** key locks the movement of the 3D cursor to that axis. 
 
 Dragging the **MMB** rotates around the position of the 3D cursor. Combining the **MMB** with the **Ctrl** key zooms to and from the 3D cursor. **Shift** and the **MMB** pans in the view plane. Holding both **Ctrl** and **Shift** while dragging with the **MMB** changed the field of view.
 
+## Tools
+
+### Brush (B)
+
+Key | Action
+----|----
+**LMB** or **Enter**| Put block
+**Shift+LMB** / **Shift+Enter**| Draw line
+
+
+### Fill (F)
+
+Key | Action
+----|----
+**LMB** or **Enter**| Fill within axis lock
+**Shift+LMB** / **Shift+Enter**| Fill ignoring axis lock
+
 
 ## Other actions
 
 Key | Action
 ----|-------
-**LMB** or **Enter**| Put block
-**Shift+LMB** / **Shift+Enter**| Draw line
 **RMB** | Pick block
 **.** | Next block
 **,** | Previous block
