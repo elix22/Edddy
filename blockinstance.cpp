@@ -21,7 +21,7 @@
 #include "blockmap.h"
 
 
-BlockInstance::BlockInstance(Context* context) : LogicComponent(context),
+BlockInstance::BlockInstance(Context* context) : Component(context),
     blockMap_{ nullptr },
     block_{ nullptr }
 {

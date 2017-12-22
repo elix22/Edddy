@@ -91,7 +91,7 @@ void EdddyCursor::HandleMapChange(StringHash eventType, VariantMap& eventData)
 
     if (blockMap) {
 
-        UpdateSizeAndOffset();
+        UpdateSize();
         MoveTo(blockMap->GetCenter());
         node_->SetEnabled(true);
 
@@ -152,13 +152,12 @@ void EdddyCursor::ToggleVisibility()
             : Hide();
 }
 
-void EdddyCursor::UpdateSizeAndOffset()
+void EdddyCursor::UpdateSize()
 {
     BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
     Vector3 blockSize{ currentMap ? currentMap->GetBlockSize() : Vector3::ONE };
 
     boxNode_->SetScale(Vector3(blockSize.x_, blockSize.y_, blockSize.z_));
-//    blockNode_->SetPosition(Vector3::DOWN * blockSize.y_ * 0.5f);
 }
 
 void EdddyCursor::SetAxisLock(std::bitset<3> lock)
@@ -213,30 +212,13 @@ void EdddyCursor::Step(IntVector3 step)
     SetCoords(resultingCoords);
 }
 
-bool EdddyCursor::CoordsOnMap(IntVector3 coords)
-{
-    BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
-    IntVector3 mapSize{ currentMap ? currentMap->GetMapSize() : IntVector3::ONE };
-
-    if ( (coords.x_ < 0 || coords.x_ >= mapSize.x_)
-      || (coords.y_ < 0 || coords.y_ >= mapSize.y_)
-      || (coords.z_ < 0 || coords.z_ >= mapSize.z_))
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
-
-}
-
 void EdddyCursor::SetCoords(IntVector3 coords)
 {
     BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
-    Vector3 blockSize{ currentMap ? GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize() : Vector3::ONE };
+    Vector3 blockSize{ currentMap ? GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize()
+                                  : Vector3::ONE };
 
-    if (!CoordsOnMap(coords)) {
+    if (currentMap && !currentMap->Contains(coords)) {
 
         if (!hidden_) {
             Hide();
@@ -253,10 +235,7 @@ void EdddyCursor::SetCoords(IntVector3 coords)
 
     coords_ = coords;
 
-    GetSubsystem<EffectMaster>()->TranslateTo(node_, Vector3{
-                                coords.x_ * blockSize.x_,
-                                coords.y_ * blockSize.y_,
-                                coords.z_ * blockSize.z_}, 0.13f);
+    GetSubsystem<EffectMaster>()->TranslateTo(node_, Vector3(coords) * blockSize, 0.13f);
     SendEvent(E_CURSORSTEP);
 }
 
@@ -265,10 +244,7 @@ void EdddyCursor::MoveTo(Vector3 position)
     BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
     Vector3 blockSize{ currentMap ? currentMap->GetBlockSize() : Vector3::ONE };
 
-    //if (grid)
-    IntVector3 coords{ static_cast<int>(round(position.x_ / blockSize.x_)),
-                       static_cast<int>(round(position.y_ / blockSize.y_)),
-                       static_cast<int>(round(position.z_ / blockSize.z_)) };
+    IntVector3 coords{ VectorRoundToInt(position / blockSize) };
 
     SetCoords(IntVector3(
             axisLock_[0] ? coords.x_ : coords_.x_,

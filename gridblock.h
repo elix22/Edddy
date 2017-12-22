@@ -34,12 +34,12 @@ public:
     static void RegisterObject(Context* context);
     virtual void OnNodeSet(Node* node);
 
-    virtual void Update(float timeStep);
-    void HandleCursorStep(StringHash eventType, VariantMap& evenData);
-    virtual void DelayedStart();
+    void HandleCursorStep(StringHash, VariantMap&);
     bool WithinLock();
     IntVector3 GetCoords() const { return coords_; }
 private:
+    bool centerVisibilityDirty_;
+
     static StaticModelGroup* activeCenterGroup_;
     static StaticModelGroup* inactiveCenterGroup_;
     static StaticModelGroup* sideGroup_;
@@ -55,6 +55,7 @@ private:
     void SetCoords(IntVector3 coords);
     void UpdatePosition();
     void CreateSideNodes();
+    void UpdateCenter(StringHash, VariantMap&);
 };
 
 #endif // GRIDBLOCK_H

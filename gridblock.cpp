@@ -33,7 +33,8 @@ void GridBlock::RegisterObject(Context *context)
 {
     context->RegisterFactory<GridBlock>();
 }
-GridBlock::GridBlock(Context* context) : BlockInstance(context)
+GridBlock::GridBlock(Context* context) : BlockInstance(context),
+    centerVisibilityDirty_{false}
 {
 }
 
@@ -64,6 +65,9 @@ void GridBlock::OnNodeSet(Node *node)
     centerNode_ = sidesNode_->CreateChild("CENTER");
 
     CreateSideNodes();
+
+    SubscribeToEvent(GetSubsystem<InputMaster>()->GetCursor(), E_CURSORSTEP, URHO3D_HANDLER(GridBlock, HandleCursorStep));
+    SubscribeToEvent(E_POSTRENDERUPDATE, URHO3D_HANDLER(GridBlock, UpdateCenter));
 }
 void GridBlock::CreateSideNodes()
 {
@@ -114,12 +118,6 @@ void GridBlock::CreateSideNodes()
     }
 }
 
-void GridBlock::DelayedStart()
-{
-
-    SubscribeToEvent(GetSubsystem<InputMaster>()->GetCursor(), E_CURSORSTEP, URHO3D_HANDLER(GridBlock, HandleCursorStep));
-}
-
 void GridBlock::Init(IntVector3 coords)
 {
     SetCoords(coords);
@@ -142,48 +140,49 @@ void GridBlock::UpdatePosition()
                            coords_.z_ * blockMap_->GetBlockDepth()));
 }
 
-void GridBlock::Update(float timeStep)
-{ (void)timeStep;
-
-}
-
-
 //void GridBlock::UpdateSelectionBorders(StringHash eventType, VariantMap& eventData)
 //{ (void)eventType; (void)eventData;
 
 
 //}
 
-void GridBlock::HandleCursorStep(StringHash eventType, VariantMap& eventData)
-{ (void)eventType; (void)eventData;
+void GridBlock::UpdateCenter(StringHash, VariantMap&)
+{
+    if (centerVisibilityDirty_) {
 
-    EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
-    Vector3 cursorCoords{ static_cast<float>(cursor->GetCoords().x_),
-                          static_cast<float>(cursor->GetCoords().y_),
-                          static_cast<float>(cursor->GetCoords().z_) };
+        EdddyCursor* cursor{ GetSubsystem<InputMaster>()->GetCursor() };
+        Vector3 cursorCoords{ cursor->GetCoords() };
 
-    float distanceToCursor{ Distance(node_->GetPosition() / blockMap_->GetBlockSize(), cursorCoords) };
+        float distanceToCursor{ Distance(node_->GetPosition() / blockMap_->GetBlockSize(), cursorCoords) };
 
-    float centerScale{1.0f - Clamp(distanceToCursor * 0.25f - 0.5f, 0.0f, 0.95f)};
+        float centerScale{ 1.0f - Clamp(distanceToCursor * 0.25f - 0.5f, 0.0f, 0.95f) };
 
-    centerNode_->SetScale(centerScale);
+        centerNode_->SetScale(centerScale);
 
-    if (WithinLock() && centerScale > 0.1f && !cursor->IsHidden()){
+        if (WithinLock() && centerScale > 0.1f && !cursor->IsHidden()){
 
-        if (coords_ == cursor->GetCoords()) {
-            activeCenterGroup_->AddInstanceNode(centerNode_);
-            inactiveCenterGroup_->RemoveInstanceNode(centerNode_);
+            if (coords_ == cursor->GetCoords()) {
+                activeCenterGroup_->AddInstanceNode(centerNode_);
+                inactiveCenterGroup_->RemoveInstanceNode(centerNode_);
+
+            } else {
+                inactiveCenterGroup_->AddInstanceNode(centerNode_);
+                activeCenterGroup_->RemoveInstanceNode(centerNode_);
+            }
 
         } else {
-            inactiveCenterGroup_->AddInstanceNode(centerNode_);
+
             activeCenterGroup_->RemoveInstanceNode(centerNode_);
+            inactiveCenterGroup_->RemoveInstanceNode(centerNode_);
         }
 
-    } else {
-
-        activeCenterGroup_->RemoveInstanceNode(centerNode_);
-        inactiveCenterGroup_->RemoveInstanceNode(centerNode_);
+        centerVisibilityDirty_ = false;
     }
+}
+
+void GridBlock::HandleCursorStep(StringHash, VariantMap&)
+{
+    centerVisibilityDirty_ = true;
 }
 
 bool GridBlock::WithinLock()

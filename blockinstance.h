@@ -24,9 +24,9 @@
 #include "luckey.h"
 #include "block.h"
 
-class BlockInstance : public LogicComponent
+class BlockInstance : public Component
 {
-    URHO3D_OBJECT(BlockInstance, LogicComponent);
+    URHO3D_OBJECT(BlockInstance, Component);
 public:
     BlockInstance(Context* context);
     virtual void OnNodeSet(Node* node);

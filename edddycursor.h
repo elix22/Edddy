@@ -42,7 +42,7 @@ public:
     void Show();
     void ToggleVisibility();
 
-    void UpdateSizeAndOffset();
+    void UpdateSize();
     void SetAxisLock(std::bitset<3> lock);
     std::bitset<3> GetAxisLock() { return axisLock_; }
     Vector3 GetLockVector() { return Vector3(axisLock_[0], axisLock_[1], axisLock_[2]); }
@@ -75,7 +75,6 @@ private:
 
     void UpdateHitPlanes();
     void UpdateModel(StringHash eventType, VariantMap& eventData);
-    bool CoordsOnMap(IntVector3 coords);
 };
 
 

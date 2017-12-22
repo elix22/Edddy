@@ -105,6 +105,7 @@ void MasterControl::Stop()
 void MasterControl::Exit()
 {
     //Save settings
+
     engine_->Exit();
 }
 
