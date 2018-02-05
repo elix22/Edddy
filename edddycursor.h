@@ -34,8 +34,8 @@ class EdddyCursor : public LogicComponent
 public:
     EdddyCursor(Context* context);
     static void RegisterObject(Context* context);
-    virtual void OnNodeSet(Node* node);
-    virtual void DelayedStart();
+    void OnNodeSet(Node* node) override;
+    void DelayedStart() override;
 
     bool IsHidden() const { return hidden_; }
     void Hide();
@@ -57,8 +57,11 @@ public:
     Quaternion GetTargetRotation() const { return targetRotation_; }
 
     void HandleMouseMove();
-    void HandleMapChange(StringHash eventType, VariantMap& eventData);
+    void HandleMapChange(StringHash, VariantMap& eventData);
 
+    void AddInstanceNode(Node* node, Quaternion rotation = Quaternion::IDENTITY);
+    void RemoveInstanceNode(Node* node);
+    void RemoveAllInstanceNodes();
 private:
     IntVector3 coords_;
     Quaternion targetRotation_;
@@ -67,7 +70,8 @@ private:
     Node* boxNode_;
     StaticModel* boxModel_;
     Node* blockNode_;
-    Pair<StaticModel*, StaticModel*> blockModels_;
+    Pair<StaticModelGroup*, StaticModelGroup*> blockModelGroups_;
+    PODVector<Node*> previewNodes_;
 
     std::bitset<3> axisLock_;
     std::bitset<3> previousAxisLock_;

@@ -19,6 +19,7 @@
 #include "editmaster.h"
 #include "history.h"
 #include "edddycursor.h"
+#include "blockmap.h"
 
 #include "brush.h"
 
@@ -32,10 +33,10 @@ void Brush::Apply(bool shiftDown, bool ctrlDown, bool altDown)
     EditMaster* editMaster{ GetSubsystem<EditMaster>() };
     IntVector3 cursorCoords{ GetCursor()->GetCoords() };
 
-    if (shiftDown && IsLastTool()){
-        for (IntVector3 coords: BresenhamLine(lastCoords_, cursorCoords)) {
-            if (coords != lastCoords_)
-                editMaster->PutBlock(coords);
+    if (shiftDown && IsLastTool()) {
+
+        for (const IntVector3& coords: BresenhamLine(lastCoords_, cursorCoords)) {
+            editMaster->PutBlock(coords);
         }
     } else {
 
@@ -44,4 +45,21 @@ void Brush::Apply(bool shiftDown, bool ctrlDown, bool altDown)
     GetSubsystem<History>()->EndStep();
 
     lastCoords_ = cursorCoords;
+}
+
+void Brush::UpdatePreview(bool shiftDown, bool ctrlDown, bool altDown)
+{
+    Tool::UpdatePreview(shiftDown, ctrlDown, altDown);
+
+
+    if (shiftDown && IsLastTool()) {
+        EditMaster* editMaster{ GetSubsystem<EditMaster>() };
+        IntVector3 cursorCoords{ GetCursor()->GetCoords() };
+
+        for (const IntVector3& coords: BresenhamLine(lastCoords_, cursorCoords)) {
+
+            if (coords != cursorCoords)
+                GetCursor()->AddInstanceNode(editMaster->GetCurrentBlockMap()->GetBlockInstance(coords)->GetNode(), GetCursor()->GetTargetRotation());
+        }
+    }
 }

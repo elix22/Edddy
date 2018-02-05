@@ -41,9 +41,10 @@ void Fill::Apply(bool shiftDown, bool ctrlDown, bool altDown)
 
     HashSet<IntVector3> area{};
 
-    Flood(cursorCoords, area, !shiftDown);
+    Flood(cursorCoords, area, true);
 
     for (IntVector3 coords: area) {
+
         editMaster->PutBlock(coords);
     }
     GetSubsystem<History>()->EndStep();
@@ -104,3 +105,23 @@ void Fill::Flood(IntVector3 coords, HashSet<IntVector3>& area, bool obeyLock)
     }
 }
 
+void Fill::UpdatePreview(bool shiftDown, bool ctrlDown, bool altDown)
+{
+    Tool::UpdatePreview(shiftDown, ctrlDown, altDown);
+
+    BlockMap* currentBlockMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
+    EditMaster* editMaster{ GetSubsystem<EditMaster>() };
+    IntVector3 cursorCoords{ GetCursor()->GetCoords() };
+
+    targetBlock_ = editMaster->GetCurrentBlockMap()->GetBlockInstance(cursorCoords)->GetBlock();
+    replacementBlock_ = editMaster->GetCurrentBlock();
+
+    HashSet<IntVector3> area{};
+
+    Flood(cursorCoords, area, true);
+
+    for (IntVector3 coords: area) {
+        if (coords != cursorCoords)
+            GetCursor()->AddInstanceNode(currentBlockMap->GetBlockInstance(coords)->GetNode(), GetCursor()->GetTargetRotation());
+    }
+}

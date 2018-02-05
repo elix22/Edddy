@@ -1,5 +1,5 @@
 /* Edddy
-// Copyright (C) 2017 LucKey Productions (luckeyproductions.nl)
+// Copyright (C) 2018 LucKey Productions (luckeyproductions.nl)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,27 +16,35 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef FILL_H
-#define FILL_H
 
-#include <Urho3D/Urho3D.h>
-#include "tool.h"
 
-class Block;
+#include "empfile.h"
 
-class Fill : public Tool
+
+EmpFile::EmpFile(Context* context) : Resource(context)
 {
-    URHO3D_OBJECT(Fill, Tool);
-public:
-    Fill(Context* context);
-    void Apply(bool shiftDown, bool ctrlDown, bool altDown) override;
-protected:
-    void UpdatePreview(bool shiftDown, bool ctrlDown, bool altDown) override;
-private:
-    void Flood(IntVector3 coords, HashSet<IntVector3>& area, bool obeyLock);
+}
 
-    Block* targetBlock_;
-    Block* replacementBlock_;
-};
+bool EmpFile::BeginLoad(Deserializer& source)
+{
+    if (GetName().Empty())
+        SetName(source.GetName());
 
-#endif // FILL_H
+    loadXMLFile_ = new XMLFile(context_);
+    if (!loadXMLFile_->Load(source))
+    {
+        URHO3D_LOGERROR("Load XML failed " + source.GetName());
+        loadXMLFile_.Reset();
+        return false;
+    }
+
+    XMLElement rootElem = loadXMLFile_->GetRoot("blockmap");
+    if (!rootElem)
+    {
+        URHO3D_LOGERROR("Invalid EMP file " + source.GetName());
+        loadXMLFile_.Reset();
+        return false;
+    }
+
+    return true;
+}

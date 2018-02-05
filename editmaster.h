@@ -30,6 +30,9 @@ URHO3D_EVENT(E_CURRENTBLOCKCHANGE, CurrentBlockChange){
 URHO3D_EVENT(E_CURRENTMAPCHANGE, CurrentMapChange){
     URHO3D_PARAM(P_MAP, BlockMap*); // BlockMap pointer
 }
+URHO3D_EVENT(E_CURRENTTOOLCHANGE, CurrentToolChange){
+    URHO3D_PARAM(P_TOOL, Tool*); // Tool pointer
+}
 
 #define BLOCKSET "Resources/TestSet.xml"
 #define BLOCKMAP "Resources/TestMap.xml"

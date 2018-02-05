@@ -43,7 +43,7 @@ class BlockMap : public LogicComponent
 public:
     BlockMap(Context* context);
     static void RegisterObject(Context* context);
-    virtual void OnNodeSet(Node* node);
+    void OnNodeSet(Node* node) override;
 
     IntVector3 GetMapSize() const { return mapSize_; }
     int GetMapWidth()       const { return mapSize_.x_; }
@@ -58,7 +58,7 @@ public:
     Vector3 GetCenter();
     BlockInstance* GetBlockInstance(IntVector3 coords);
     void SetBlock(IntVector3 coords, Quaternion rotation, Block* block);
-    void LoadXML(const XMLElement &source);
+    bool LoadXML(const XMLElement &source) override;
     void SaveXML(XMLElement &dest);
     Vector<Block*> GetUsedBlocks();
     Vector<BlockSet*> GetUsedBlockSets();

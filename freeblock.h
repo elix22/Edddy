@@ -29,7 +29,7 @@ class FreeBlock : public BlockInstance
 public:
     FreeBlock(Context* context);
     static void RegisterObject(Context* context);
-    virtual void OnNodeSet(Node* node);
+    void OnNodeSet(Node* node) override;
 private:
     Vector3 location_;
 };

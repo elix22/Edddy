@@ -32,7 +32,7 @@ class GridBlock : public BlockInstance
 public:
     GridBlock(Context* context);
     static void RegisterObject(Context* context);
-    virtual void OnNodeSet(Node* node);
+    void OnNodeSet(Node* node) override;
 
     void HandleCursorStep(StringHash, VariantMap&);
     bool WithinLock();

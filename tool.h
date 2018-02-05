@@ -31,6 +31,7 @@ public:
     Tool(Context* context);
 
     virtual void Apply(bool shiftDown, bool ctrlDown, bool altDown) = 0;
+    virtual void UpdatePreview(bool shiftDown, bool ctrlDown, bool altDown);
 
     bool IsLastTool();
 
@@ -49,11 +50,10 @@ public:
         } else
             return nullptr;
     }
-
 protected:
     static HashMap<StringHash, SharedPtr<Tool>> tools_;
 
-    PODVector<IntVector3> BresenhamLine(const IntVector3 start, const IntVector3 end);
+    const HashSet<IntVector3> BresenhamLine(const IntVector3 start, const IntVector3 end);
     EdddyCursor* GetCursor();
     void Init();
 };

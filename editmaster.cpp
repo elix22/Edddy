@@ -47,7 +47,6 @@ void EditMaster::CreateTools()
 {
     SetTool(new Brush(context_));
     new Fill(context_);
-
 }
 
 void EditMaster::NewMap(const IntVector3& mapSize, const Vector3& blockSize)
@@ -372,6 +371,10 @@ void EditMaster::SetTool(Tool* tool)
     if (currentTool_)
         lastTool_ = currentTool_->GetType();
     currentTool_ = tool;
+
+    VariantMap eventData{};
+    eventData[CurrentToolChange::P_TOOL] = tool;
+    SendEvent(E_CURRENTTOOLCHANGE, eventData);
 }
 void EditMaster::ApplyTool(bool shiftDown, bool ctrlDown, bool altDown)
 {
@@ -379,6 +382,7 @@ void EditMaster::ApplyTool(bool shiftDown, bool ctrlDown, bool altDown)
         return;
 
     currentTool_->Apply(shiftDown, ctrlDown, altDown);
+    currentTool_->UpdatePreview(shiftDown, ctrlDown, altDown);
 
     lastTool_ = currentTool_->GetType();
 }

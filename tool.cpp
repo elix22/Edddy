@@ -28,6 +28,11 @@ Tool::Tool(Context* context) : Object(context)
 {
 }
 
+void Tool::UpdatePreview(bool shiftDown, bool ctrlDown, bool altDown)
+{
+    GetCursor()->RemoveAllInstanceNodes();
+}
+
 void Tool::Init()
 {
     if (!tools_.Contains(GetType()))
@@ -44,9 +49,9 @@ EdddyCursor* Tool::GetCursor()
     return GetSubsystem<InputMaster>()->GetCursor();
 }
 
-PODVector<IntVector3> Tool::BresenhamLine(const IntVector3 start, const IntVector3 end)
+const HashSet<IntVector3> Tool::BresenhamLine(const IntVector3 start, const IntVector3 end)
 {
-    PODVector<IntVector3> line{};
+    HashSet<IntVector3> line{};
     int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
     IntVector3 point{ start };
 
@@ -67,7 +72,7 @@ PODVector<IntVector3> Tool::BresenhamLine(const IntVector3 start, const IntVecto
         err_1 = dy2 - l;
         err_2 = dz2 - l;
         for (i = 0; i < l; i++) {
-            line.Push(point);
+            line.Insert(point);
             if (err_1 > 0) {
                 point.y_ += y_inc;
                 err_1 -= dx2;
@@ -84,7 +89,7 @@ PODVector<IntVector3> Tool::BresenhamLine(const IntVector3 start, const IntVecto
         err_1 = dx2 - m;
         err_2 = dz2 - m;
         for (i = 0; i < m; i++) {
-            line.Push(point);
+            line.Insert(point);
             if (err_1 > 0) {
                 point.x_ += x_inc;
                 err_1 -= dy2;
@@ -101,7 +106,7 @@ PODVector<IntVector3> Tool::BresenhamLine(const IntVector3 start, const IntVecto
         err_1 = dy2 - n;
         err_2 = dx2 - n;
         for (i = 0; i < n; i++) {
-            line.Push(point);
+            line.Insert(point);
             if (err_1 > 0) {
                 point.y_ += y_inc;
                 err_1 -= dz2;
@@ -115,7 +120,7 @@ PODVector<IntVector3> Tool::BresenhamLine(const IntVector3 start, const IntVecto
             point.z_ += z_inc;
         }
     }
-    line.Push(point);
+    line.Insert(point);
 
     return line;
 }

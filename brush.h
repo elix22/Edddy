@@ -28,6 +28,8 @@ class Brush : public Tool
 public:
     Brush(Context* context);
     void Apply(bool shiftDown, bool ctrlDown, bool altDown) override;
+protected:
+    void UpdatePreview(bool shiftDown, bool ctrlDown, bool altDown) override;
 private:
     IntVector3 lastCoords_;
 };

@@ -40,7 +40,8 @@ SOURCES += \
     history.cpp \
     tool.cpp \
     brush.cpp \
-    fill.cpp
+    fill.cpp \
+    empfile.cpp
 
 HEADERS += \
     luckey.h \
@@ -65,4 +66,5 @@ HEADERS += \
     history.h \
     tool.h \
     brush.h \
-    fill.h
+    fill.h \
+    empfile.h

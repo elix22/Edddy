@@ -40,7 +40,8 @@
 URHO3D_DEFINE_APPLICATION_MAIN(MasterControl);
 
 MasterControl::MasterControl(Context *context):
-    Application(context)
+    Application(context),
+    drawDebug_{false}
 {
     EdddyCam::RegisterObject(context_);
     EdddyCursor::RegisterObject(context_);
@@ -69,6 +70,7 @@ void MasterControl::Start()
     CACHE->SetAutoReloadResources(true);
 
     context_->RegisterSubsystem(this);
+    context_->RegisterSubsystem(new GUIMaster(context_));
     context_->RegisterSubsystem(new ResourceMaster(context_));
     context_->RegisterSubsystem(new InputMaster(context_));
     context_->RegisterSubsystem(new CastMaster(context_));
@@ -82,7 +84,6 @@ void MasterControl::Start()
     CreateScene();
     SubscribeToEvents();
 
-    context_->RegisterSubsystem(new GUIMaster(context_));
 }
 
 void MasterControl::LoadBlocks()

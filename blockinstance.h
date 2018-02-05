@@ -29,7 +29,7 @@ class BlockInstance : public Component
     URHO3D_OBJECT(BlockInstance, Component);
 public:
     BlockInstance(Context* context);
-    virtual void OnNodeSet(Node* node);
+    void OnNodeSet(Node* node) override;
     void SetBlock(Block* block, Quaternion rotation);
     Block* GetBlock() const { return block_; }
     Quaternion GetRotation() const { return blockNode_->GetRotation(); }

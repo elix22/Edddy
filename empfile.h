@@ -1,5 +1,5 @@
 /* Edddy
-// Copyright (C) 2017 LucKey Productions (luckeyproductions.nl)
+// Copyright (C) 2018 LucKey Productions (luckeyproductions.nl)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,27 +16,25 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef FILL_H
-#define FILL_H
+
+
+#ifndef EMPFILE_H
+#define EMPFILE_H
 
 #include <Urho3D/Urho3D.h>
-#include "tool.h"
+#include "luckey.h"
 
-class Block;
 
-class Fill : public Tool
+class EmpFile : public Resource
 {
-    URHO3D_OBJECT(Fill, Tool);
+    URHO3D_OBJECT(EmpFile, Resource);
 public:
-    Fill(Context* context);
-    void Apply(bool shiftDown, bool ctrlDown, bool altDown) override;
-protected:
-    void UpdatePreview(bool shiftDown, bool ctrlDown, bool altDown) override;
+    EmpFile(Context* context);
+    bool BeginLoad(Deserializer& source) override;
 private:
-    void Flood(IntVector3 coords, HashSet<IntVector3>& area, bool obeyLock);
 
-    Block* targetBlock_;
-    Block* replacementBlock_;
+    /// XML file used during loading.
+    SharedPtr<XMLFile> loadXMLFile_;
 };
 
-#endif // FILL_H
+#endif // EMPFILE_H

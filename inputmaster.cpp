@@ -83,6 +83,8 @@ void InputMaster::HandleCursorStep(StringHash eventType, VariantMap &eventData)
 { (void)eventType; (void)eventData;
 
     actionTime_[ACTION_CONFIRM] = ACTION_INTERVAL;
+
+    GetSubsystem<EditMaster>()->GetTool()->UpdatePreview(shiftDown_, ctrlDown_, altDown_);
 }
 
 void InputMaster::HandleUpdate(StringHash eventType, VariantMap &eventData)
@@ -372,9 +374,19 @@ void InputMaster::HandleJoyButtonDown(StringHash eventType, VariantMap &eventDat
 }
 void InputMaster::UpdateModifierKeys()
 {
+    bool oldShift { shiftDown_ };
+    bool oldCtrl  { ctrlDown_  };
+    bool oldAlt   { altDown_   };
+
     shiftDown_ = INPUT->GetKeyDown(KEY_SHIFT) || INPUT->GetKeyDown(KEY_LSHIFT) || INPUT->GetKeyDown(KEY_RSHIFT);
     ctrlDown_  = INPUT->GetKeyDown(KEY_CTRL)  || INPUT->GetKeyDown(KEY_LCTRL)  || INPUT->GetKeyDown(KEY_RCTRL);
     altDown_   = INPUT->GetKeyDown(KEY_ALT)   || INPUT->GetKeyDown(KEY_LALT)   || INPUT->GetKeyDown(KEY_RALT);
+
+    if (shiftDown_ != oldShift
+     || ctrlDown_  != oldCtrl
+     || altDown_   != oldAlt)
+
+        GetSubsystem<EditMaster>()->GetTool()->UpdatePreview(shiftDown_, ctrlDown_, altDown_);
 }
 
 void InputMaster::HandleJoyButtonUp(StringHash eventType, VariantMap &eventData)

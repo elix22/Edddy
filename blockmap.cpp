@@ -96,8 +96,11 @@ void BlockMap::UpdateCorners()
     }
 }
 
-void BlockMap::LoadXML(const XMLElement &source)
+bool BlockMap::LoadXML(const XMLElement &source)
 {
+    if (!Serializable::LoadXML(source))
+        return false;
+
     SetMapSize(source.GetIntVector3("map_size"));
     SetBlockSize(source.GetVector3("block_size"));
     Initialize();
@@ -125,6 +128,8 @@ void BlockMap::LoadXML(const XMLElement &source)
 
         blockSetXML = blockSetXML.GetNext("blockset");
     }
+
+    return true;
 }
 
 void BlockMap::SaveXML(XMLElement& dest)

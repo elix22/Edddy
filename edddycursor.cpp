@@ -35,6 +35,8 @@ void EdddyCursor::RegisterObject(Context *context)
 EdddyCursor::EdddyCursor(Context* context) : LogicComponent(context),
     coords_{},
     targetRotation_{},
+    blockModelGroups_{},
+    previewNodes_{},
     axisLock_{},
     previousAxisLock_{}
 {
@@ -66,15 +68,17 @@ void EdddyCursor::OnNodeSet(Node *node)
     boxModel_->SetModel(GetSubsystem<ResourceMaster>()->GetModel("Cursor"));
     boxModel_->SetMaterial(MAT_GLOWWIRE);
 
-    for (bool wire : {true, false}){
-        StaticModel* blockModel{ blockNode_->CreateComponent<StaticModel>() };
+    for (bool wire : {true, false}) {
+
+        StaticModelGroup* blockModelGroup{ blockNode_->CreateComponent<StaticModelGroup>() };
 
         if (wire) {
-            blockModels_.first_ = blockModel;
+            blockModelGroups_.first_ = blockModelGroup;
         } else {
-            blockModels_.second_ = blockModel;
+            blockModelGroups_.second_ = blockModelGroup;
         }
     }
+    AddInstanceNode(blockNode_);
 
     SubscribeToEvent(E_CURRENTBLOCKCHANGE, URHO3D_HANDLER(EdddyCursor, UpdateModel));
     SubscribeToEvent(E_CURRENTMAPCHANGE, URHO3D_HANDLER(EdddyCursor, HandleMapChange));
@@ -84,8 +88,8 @@ void EdddyCursor::DelayedStart()
 //    MoveTo(GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetCenter());
 //    SendEvent(E_CURSORSTEP);
 }
-void EdddyCursor::HandleMapChange(StringHash eventType, VariantMap& eventData)
-{ (void)eventType;
+void EdddyCursor::HandleMapChange(StringHash, VariantMap& eventData)
+{
 
     BlockMap* blockMap{ static_cast<BlockMap*>(eventData[CurrentMapChange::P_MAP].GetPtr()) };
 
@@ -110,18 +114,18 @@ void EdddyCursor::UpdateModel(StringHash eventType, VariantMap& eventData)
         Model* model{ currentBlock->GetModel() };
         if (model) {
 
-            blockModels_.first_->SetModel(model);
-            blockModels_.first_->SetMaterial(MAT_GLOWWIRE);
-            blockModels_.second_->SetModel(model);
-            blockModels_.second_->SetMaterial(MAT_TRANSPARENTGLOW);
+            blockModelGroups_.first_->SetModel(model);
+            blockModelGroups_.first_->SetMaterial(MAT_GLOWWIRE);
+            blockModelGroups_.second_->SetModel(model);
+            blockModelGroups_.second_->SetMaterial(MAT_TRANSPARENTGLOW);
             if (boxNode_->IsEnabled())
                 boxNode_->SetEnabled(false);
         }
 
     } else {
 
-        blockModels_.first_->SetModel(nullptr);
-        blockModels_.second_->SetModel(nullptr);
+        blockModelGroups_.first_->SetModel(nullptr);
+        blockModelGroups_.second_->SetModel(nullptr);
 
         if (!boxNode_->IsEnabled())
             boxNode_->SetEnabled(true);
@@ -140,7 +144,7 @@ void EdddyCursor::Show()
 {
     hidden_ = false;
     blockNode_->SetEnabled(true);
-    if (blockModels_.first_->GetModel()) {
+    if (blockModelGroups_.first_->GetModel()) {
         boxNode_->SetEnabled(false);
     } else {
         boxNode_->SetEnabled(true);
@@ -152,10 +156,72 @@ void EdddyCursor::ToggleVisibility()
             : Hide();
 }
 
+void EdddyCursor::AddInstanceNode(Node* node, Quaternion rotation)
+{ if (!node) return;
+
+    if (node == blockNode_) {
+
+        blockModelGroups_.first_->AddInstanceNode(node);
+        blockModelGroups_.second_->AddInstanceNode(node);
+
+    } else {
+
+        Node* previewNode{ node->GetChild("PREVIEW") };
+
+        if (!previewNode)
+            previewNode = node->CreateChild("PREVIEW");
+
+        previewNode->SetWorldRotation(rotation);
+        blockModelGroups_.first_->AddInstanceNode(previewNode);
+        blockModelGroups_.second_->AddInstanceNode(previewNode);
+
+        previewNodes_.Push(previewNode);
+    }
+}
+void EdddyCursor::RemoveInstanceNode(Node* node)
+{ if (!node) return;
+
+    if (node == blockNode_) {
+
+        blockModelGroups_.first_->RemoveInstanceNode(node);
+        blockModelGroups_.second_->RemoveInstanceNode(node);
+
+    } else {
+
+        Node* previewNode{ node->GetChild("PREVIEW") };
+
+        if (!previewNode)
+            return;
+
+        blockModelGroups_.first_->RemoveInstanceNode(previewNode);
+        blockModelGroups_.second_->RemoveInstanceNode(previewNode);
+
+        if (previewNodes_.Contains(previewNode)) {
+            previewNodes_.Remove(previewNode);
+            previewNode->Remove();
+        }
+    }
+}
+void EdddyCursor::RemoveAllInstanceNodes()
+{
+    blockModelGroups_.first_->RemoveAllInstanceNodes();
+    blockModelGroups_.second_->RemoveAllInstanceNodes();
+    
+    AddInstanceNode(blockNode_);
+
+    for (Node* node: previewNodes_)
+        node->Remove();
+
+    previewNodes_.Clear();
+}
+
 void EdddyCursor::UpdateSize()
 {
     BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
-    Vector3 blockSize{ currentMap ? currentMap->GetBlockSize() : Vector3::ONE };
+    Vector3 blockSize{ Vector3::ONE };
+
+    if (currentMap)
+        blockSize = currentMap->GetBlockSize();
 
     boxNode_->SetScale(Vector3(blockSize.x_, blockSize.y_, blockSize.z_));
 }
@@ -175,26 +241,27 @@ void EdddyCursor::SetAxisLock(std::bitset<3> lock)
 void EdddyCursor::Step(IntVector3 step)
 {
     BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
-    IntVector3 mapSize{ currentMap ? currentMap->GetMapSize() : IntVector3::ONE };
+    IntVector3 mapSize{ IntVector3::ONE };
 
-    if (axisLock_.count() == 2){
-        switch (axisLock_.to_ulong()) {
-        case 5: step = IntVector3(step.x_, step.z_, step.y_);
-            break;
-        case 3: step = IntVector3(step.x_, step.y_, step.z_);
-            break;
-        case 6: step = IntVector3(step.z_, step.y_, step.x_);
-            break;
-        }
-    } else {
-        switch (axisLock_.to_ulong()) {
-        case 1: step = IntVector3(step.x_ + step.y_ + step.z_, 0, 0);
-            break;
-        case 2: step = IntVector3(0, step.x_ + step.y_ + step.z_, 0);
-            break;
-        case 4: step = IntVector3(0, 0, step.x_ + step.y_ + step.z_);
-            break;
-        }
+    if (currentMap)
+        mapSize = currentMap->GetMapSize();
+
+    switch (axisLock_.to_ulong()) {
+    case 5: step = IntVector3(step.x_, step.z_, step.y_);
+        break;
+    case 3: step = IntVector3(step.x_, step.y_, step.z_);
+        break;
+    case 6: step = IntVector3(step.z_, step.y_, step.x_);
+        break;
+
+    case 1: step = IntVector3(step.x_ + step.y_ + step.z_, 0, 0);
+        break;
+    case 2: step = IntVector3(0, step.x_ + step.y_ + step.z_, 0);
+        break;
+    case 4: step = IntVector3(0, 0, step.x_ + step.y_ + step.z_);
+        break;
+    default:
+        break;
     }
 
 
@@ -215,8 +282,11 @@ void EdddyCursor::Step(IntVector3 step)
 void EdddyCursor::SetCoords(IntVector3 coords)
 {
     BlockMap* currentMap{ GetSubsystem<EditMaster>()->GetCurrentBlockMap() };
-    Vector3 blockSize{ currentMap ? GetSubsystem<EditMaster>()->GetCurrentBlockMap()->GetBlockSize()
-                                  : Vector3::ONE };
+    Vector3 blockSize{ Vector3::ONE };
+
+    if (currentMap)
+        blockSize = currentMap->GetBlockSize();
+
 
     if (currentMap && !currentMap->Contains(coords)) {
 
@@ -235,7 +305,8 @@ void EdddyCursor::SetCoords(IntVector3 coords)
 
     coords_ = coords;
 
-    GetSubsystem<EffectMaster>()->TranslateTo(node_, Vector3(coords) * blockSize, 0.13f);
+//    GetSubsystem<EffectMaster>()->TranslateTo(node_, Vector3(coords) * blockSize, 0.13f);
+    node_->SetPosition(Vector3(coords) * blockSize);
     SendEvent(E_CURSORSTEP);
 }
 
@@ -257,12 +328,19 @@ void EdddyCursor::Rotate(bool clockWise)
     Vector3 axis{ Vector3::UP };
     targetRotation_ = Quaternion(clockWise ? 90.0f :  -90.0f, axis) * targetRotation_;
     GetSubsystem<EffectMaster>()->RotateTo(node_, targetRotation_, 0.1f);
+
+    SendEvent(E_CURSORSTEP);
 }
 void EdddyCursor::SetRotation(Quaternion rot)
 {
 //    node_->RemoveAttributeAnimation("Position");
     node_->SetRotation(rot);
-    targetRotation_ = rot;
+
+    if (targetRotation_ != rot) {
+
+        targetRotation_ = rot;
+        SendEvent(E_CURSORSTEP);
+    }
 }
 
 void EdddyCursor::HandleMouseMove()

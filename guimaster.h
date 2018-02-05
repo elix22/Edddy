@@ -34,6 +34,7 @@ private:
     HashMap<String, Text*> input_;
     void CreateToolBar();
     void HandleToolBarButtonPressed(StringHash eventType, VariantMap& eventData);
+    void HandleCurrentToolChange(StringHash, VariantMap& eventData);
 };
 
 #endif // GUIMASTER_H

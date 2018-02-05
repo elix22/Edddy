@@ -18,6 +18,8 @@ GUIMaster::GUIMaster(Context* context) : Object(context),
 
     CreateToolBar();
     CreateNewMapWindow();
+
+    SubscribeToEvent(E_CURRENTTOOLCHANGE, URHO3D_HANDLER(GUIMaster, HandleCurrentToolChange));
 }
 
 void GUIMaster::CreateToolBar()
@@ -52,7 +54,7 @@ void GUIMaster::CreateToolBar()
             //Create button
             Button* button{ toolBar_->CreateChild<Button>(item) };
             button->SetVerticalAlignment(VA_CENTER);
-
+            button->AddTag(group);
             button->SetBlendMode(BLEND_ALPHA);
             Texture* icon{ new Texture2D(context_) };
             icon->LoadFile("Resources/Textures/Icons/" + item.Split(' ').Front() + ".png");
@@ -114,6 +116,24 @@ void GUIMaster::HandleToolBarButtonPressed(StringHash eventType, VariantMap& eve
         GetSubsystem<History>()->Redo();
     } else if (name == "Brush" || name == "Fill") {
         editMaster->SetTool(Tool::GetTool(StringHash(name)));
+    }
+}
+
+void GUIMaster::HandleCurrentToolChange(StringHash, VariantMap& eventData)
+{
+    for (UIElement* element : toolBar_->GetChildren()) {
+        Button* button{ static_cast<Button*>(element) };
+
+        if (button && element->HasTag("Tools") && button->GetBlendMode() != BLEND_SUBTRACT) {
+
+            if (button->GetName() == static_cast<Tool*>(eventData[CurrentToolChange::P_TOOL].GetPtr())->GetTypeName()) {
+                button->SetBlendMode(BLEND_ADDALPHA);
+                button->SetColor(Color::WHITE);
+            } else {
+                button->SetBlendMode(BLEND_REPLACE);
+                button->SetColor(Color::WHITE * 0.9f);
+            }
+        }
     }
 }
 

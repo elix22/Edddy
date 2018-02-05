@@ -39,9 +39,9 @@ class MasterControl : public Application
 public:
     MasterControl(Context* context);
 
-    virtual void Setup();
-    virtual void Start();
-    virtual void Stop();
+    void Setup() override;
+    void Start() override;
+    void Stop() override;
     void Exit();
 
 
@@ -68,7 +68,7 @@ private:
     void CreatePlatform(const Vector3 pos);
     void UpdateCursor(float timeStep);
 
-    bool drawDebug_{false};
+    bool drawDebug_;
     void HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData);
     float SinePhase(float freq, float shift);
     void LoadBlocks();

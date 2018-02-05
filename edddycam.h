@@ -37,8 +37,8 @@ class EdddyCam : public LogicComponent
 public:
     EdddyCam(Context *context);
     static void RegisterObject(Context* context);
-    virtual void OnNodeSet(Node* node);
-    virtual void Update(float timeStep);
+    void OnNodeSet(Node* node) override;
+    void Update(float timeStep) override;
     void HandleMapChange(StringHash eventType, VariantMap& eventData);
 
     Quaternion GetRotation() const { return node_->GetRotation(); }
