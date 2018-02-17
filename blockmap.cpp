@@ -107,10 +107,11 @@ bool BlockMap::LoadXML(const XMLElement &source)
 
     XMLElement blockSetXML{ source.GetChild("blockset") };
 
-    while(blockSetXML) {
+    while (blockSetXML) {
 
         BlockSet* blockSet{ GetSubsystem<EditMaster>()->LoadBlockSet(blockSetXML.GetAttribute("name")) };
         if (blockSet) {
+
             XMLElement gridBlockXML{ source.GetChild("gridblock") };
             while (gridBlockXML) {
 

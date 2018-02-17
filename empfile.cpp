@@ -16,10 +16,13 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-
-
 #include "empfile.h"
 
+
+void EmpFile::RegisterObject(Context* context)
+{
+    context->RegisterFactory<EmpFile>();
+}
 
 EmpFile::EmpFile(Context* context) : Resource(context)
 {
@@ -47,4 +50,14 @@ bool EmpFile::BeginLoad(Deserializer& source)
     }
 
     return true;
+}
+
+bool EmpFile::EndLoad()
+{
+    if (!loadXMLFile_)
+        return false;
+
+    XMLElement rootElem{ loadXMLFile_->GetRoot("blockmap") };
+
+    //Read info
 }

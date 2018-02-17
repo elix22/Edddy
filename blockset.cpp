@@ -26,10 +26,14 @@ BlockSet::BlockSet(Context* context) : Object(context)
 }
 
 Block* BlockSet::GetBlockById(int id) {
+
     for (Block* b : blocks_) {
+
         if (b->GetId() == id)
             return b;
+
     }
+
     return nullptr;
 }
 

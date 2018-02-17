@@ -16,8 +16,6 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-
-
 #ifndef EMPFILE_H
 #define EMPFILE_H
 
@@ -29,8 +27,15 @@ class EmpFile : public Resource
 {
     URHO3D_OBJECT(EmpFile, Resource);
 public:
-    EmpFile(Context* context);
+    /// Construct
+    explicit EmpFile(Context* context);
+    /// Register object factory.
+    static void RegisterObject(Context* context);
+
+    /// Load resource from stream.
     bool BeginLoad(Deserializer& source) override;
+    /// Finish resource loading.
+    bool EndLoad() override;
 private:
 
     /// XML file used during loading.
